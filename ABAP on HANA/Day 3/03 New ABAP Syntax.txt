@@ -1,0 +1,205 @@
+*&---------------------------------------------------------------------*
+*& Report zdec_new_abap_syntax
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zdec_new_abap_syntax.
+
+*select company_name, currency_code from snwd_bpa into table @data(itab).
+*
+*loop at itab REFERENCE INTO data(lo_line).
+*    WRITE : / lo_line->company_name, lo_line->currency_code.
+*ENDLOOP.
+
+
+
+*types: BEGIN OF ty_player,
+*        player type c LENGTH 10,
+*        team   type c LENGTH 10,
+*        score  type i,
+*       END OF TY_PLAYER,
+*       BEGIN OF ty_game,
+*        teammember type c LENGTH 10,
+*        teamname TYPE c LENGTH 10,
+*        points type i,
+*       END OF TY_GAME.
+*
+*data : itab type TABLE of ty_player,
+*       jtab type table of ty_player,
+*       ktab type TABLE of ty_game.
+*
+*itab = value #( ( player = 'Messi' team = 'Barcelona' score = 5 )
+*                ( player = 'Ronaldo' team = 'Black P' score = 9 ) ).
+**move-CORRESPONDING itab to jtab.
+*jtab = CORRESPONDING #( itab ).
+**ktab = CORRESPONDING #( itab mapping teammember = player teamname = team ).
+*ktab = value #( for wa in itab ( teammember = wa-player
+*                                 teamname = wa-team
+*                                 points = wa-score * 10
+*  ) ).
+*
+*loop at ktab into data(ls_wa).
+*    write : ls_wa-teammember, ls_wa-teamname, ls_wa-points.
+*endloop.
+*
+*if ( line_exists( itab[ player = 'Messy' ] ) ).
+*    data(wa1) = itab[ player = 'Messy' ].
+*    WRITE : / wa1-player, wa1-score, wa1-team.
+*ENDIF.
+
+
+
+"Constructor / Value Expression
+
+*types : BEGIN OF ty_sample,
+*            company type c LENGTH 10,
+*            valation type int4,
+*            country type land1,
+*        END OF TY_SAMPLE,
+*        tt_sample type STANDARD TABLE OF ty_sample with DEFAULT KEY.
+*
+**data: itab type table of ty_sample,
+**      wa type ty_sample.
+*
+*data(itab) = value tt_sample( ( company = 'SAP' valation = 53 country = 'DE' )
+*                ( company = 'IBM' valation = 74 country = 'US' )
+*                ( company = 'APPLE' valation = 98 country = 'US' ) ).
+
+*wa-company = 'SAP'.
+*wa-valation = 53.
+*wa-country = 'DE'.
+*append wa to itab.
+*
+*wa-company = 'IBM'.
+*wa-valation = 74.
+*wa-country = 'US'.
+*append wa to itab.
+*
+*wa-company = 'APPLE'.
+*wa-valation = 98.
+*wa-country = 'US'.
+*append wa to itab.
+
+
+*loop at itab into data(ls_wa).
+*    write : / ls_wa-company, ls_wa-valation, ls_wa-country.
+*endloop.
+
+
+
+
+"Create object
+*data: lo_declare type ref to cl_gui_alv_grid_ext.
+*
+*create object lo_declare
+*  EXPORTING
+*    i_parent                =
+*  .
+*data(lo_con) = new cl_gui_container(
+*  clsid                   = ''
+*).
+*data(lo_object) = new cl_gui_alv_grid(
+*  i_parent                = lo_con
+*).
+
+
+
+"Case expression
+CONSTANTS lc_high type c LENGTH 6 VALUE 'High'.
+select so_id, case
+                when gross_amount > 5000 then @lc_high
+                when gross_amount <= 5000 and gross_amount > 1000 then 'Medium'
+                else 'Low' end as ord_type
+                from snwd_so
+                into table @data(itab).
+
+loop at itab into data(ls_wa).
+    write : ls_wa-so_id, ls_wa-ord_type.
+endloop.
+
+
+"Simple case
+*select bp_id, case bp_role
+*                when '01' then 'Customer'
+*                when '02' then 'Supplier'
+*                end as bp_role
+* from snwd_bpa into table @data(itab).
+*
+*loop at itab into data(ls_wa).
+*    write : ls_wa-bp_id, ls_wa-bp_role.
+*endloop.
+
+
+*data: lv_con type string,
+*      lv_country type c LENGTH 12 VALUE 'India'.
+*
+**CONCATENATE 'My country is ' '''' lv_country '''' INTO lv_con RESPECTING BLANKS.
+*"new string expression
+*lv_con = |My country is '{ lv_country }'|.
+*
+*WRITE : / lv_con.
+
+
+
+*data: lv_tax type p DECIMALS 2.
+*lv_tax = 118 / 100.
+*
+*select so_id, gross_amount,
+*       CONCAT( 'M/s', CURRENCY_CODE ) as newval,
+*       ceil( gross_amount * @lv_tax ) as taxes_amount
+*from snwD_so into table @data(itab).
+*
+*loop at itab into data(ls_wa).
+*    write : / ls_wa-so_id, ls_wa-gross_amount, ls_wa-newval, ls_wa-taxes_amount.
+*endloop.
+
+
+"passing literal from select query
+*select SINGLE 'X' into @data(lv_exist) from mara where matnr = 'TG10'.
+*
+*if lv_exist = abap_true .
+*    WRITE : / 'yes'.
+*endif.
+*
+*"passing literal from select query
+*select 'M/s' && company_name as company_name FROM snwd_bpa into table @data(itab).
+*loop at itab into data(ls_wa).
+*    write : ls_wa-company_name.
+*endloop.
+
+
+
+*PARAMETERS matnr type mara-matnr.
+*
+*data: ls_mara type mara.
+*"Comma seprated field and escaping of host variables
+*select SINGLE matnr, meins from mara into CORRESPONDING FIELDS OF @ls_mara where matnr = @matnr.
+*
+*WRITE : / ls_mara-matnr, ls_mara-meins.
+
+
+"5th
+"data: lt_mara type table of mara.
+
+"10000
+"inline data declaration
+*select matnr, meins from mara into table @data(lt_mara).
+*
+*loop at lt_mara into data(ls_mara).
+*    write : ls_mara-matnr, ls_mara-meins.
+*endloop.
+*loop at lt_mara ASSIGNING FIELD-SYMBOL(<fs>).
+*    WRITE : / <fs>-matnr.
+*ENDLOOP.
+
+
+
+
+"old syntax.
+data : ls_mara type mara.
+
+select single matnr meins from mara into ls_mara.
+
+write : / ls_mara-matnr , ls_mara-meins.
+
+

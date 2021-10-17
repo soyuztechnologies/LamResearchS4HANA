@@ -1,0 +1,103 @@
+@AbapCatalog.sqlViewName: 'ZAPRCLRPI'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'List Report CDS View'
+@OData.publish: true
+define view ZAPR_C_IDOC_LRP as select from ZAPR_CO_IDOC as doc
+association[1] to ZAPR_TF_IDOC_MSG as _Message
+on doc.docnum = _Message.docnum 
+ {
+    //ZAPR_CO_IDOC
+    @UI.selectionField: [{position: 10 }]
+    @UI.lineItem: [{position: 10 }]
+    @UI.identification: [{position: 10 }]
+    key docnum,
+    @UI.selectionField: [{position: 20 }]
+    @UI.lineItem: [{position: 20 }]
+    @UI.identification: [{position: 20 }]
+    status,
+    @UI.lineItem: [{position: 30 }]
+    @UI.identification: [{position: 30 }]
+    credat,
+    cretim,
+    @UI.lineItem: [{position: 40 }]
+    @UI.identification: [{position: 40 }]
+    _Message(p_clnt : $session.client).statxt,
+    @UI.lineItem: [{position: 50 }]
+    @UI.selectionField: [{position: 30 }]
+    @UI.identification: [{position: 50 }]
+    @EndUserText.label: 'Error Category'
+    ErrorCategory
+}
+
+
+@EndUserText.label: 'Extract Message Texts'
+define table function ZAPR_TF_IDOC_MSG
+with parameters 
+@Environment.systemField: #CLIENT
+p_clnt : abap.clnt
+returns {
+  client : abap.clnt;
+  docnum : edi_docnum;
+  statxt : edi_statx_;  
+}
+implemented by method zcl_apr_idoc=>extract_message;
+
+
+class zcl_apr_idoc definition
+  public
+  final
+  create public .
+
+  public section.
+    interfaces if_amdp_marker_hdb.
+    class-methods extract_message for table function ZAPR_TF_IDOC_MSG.
+  protected section.
+  private section.
+endclass.
+
+
+
+class zcl_apr_idoc implementation.
+  method extract_message by database function for hdb language sqlscript
+  using edids.
+
+       --Step 1: get the most latest counter for status record
+       lt_unprocessed = select mandt as client, docnum, countr, statxt, stapa1, stapa2,
+                               stapa3, stapa4 from edids where
+                               ( docnum, countr ) in ( select docnum, max( countr ) from edids
+                                group by docnum
+                               );
+       --Step 2: Start our logic to replace the occurrences of & systematically
+       lt_msg1 = select client, docnum, countr, stapa2,
+                               stapa3, stapa4,
+                               case when statxt like '%&%'
+                               then concat( concat ( substr_before( statxt, '&'), stapa1 ), substr_after( statxt, '&' ) )
+                               else statxt end as statxt
+                               from :lt_unprocessed;
+
+       lt_msg2 = select client, docnum, countr,
+                               stapa3, stapa4,
+                               case when statxt like '%&%'
+                               then concat( concat ( substr_before( statxt, '&'), stapa2 ), substr_after( statxt, '&' ) )
+                               else statxt end as statxt
+                               from :lt_msg1;
+
+       lt_msg3 = select client, docnum, countr,
+                               stapa4,
+                               case when statxt like '%&%'
+                               then concat( concat ( substr_before( statxt, '&'), stapa3 ), substr_after( statxt, '&' ) )
+                               else statxt end as statxt
+                               from :lt_msg2;
+
+       --Step 3: Send the final message text out
+        return select client, docnum,
+                               case when statxt like '%&%'
+                               then concat( concat ( substr_before( statxt, '&'), stapa4 ), substr_after( statxt, '&' ) )
+                               else statxt end as statxt
+                               from :lt_msg3;
+
+  endmethod.
+
+endclass.
