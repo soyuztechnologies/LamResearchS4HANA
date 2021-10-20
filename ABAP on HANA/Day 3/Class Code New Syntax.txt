@@ -1,0 +1,172 @@
+*&---------------------------------------------------------------------*
+*& Report zlam_ab_new_syntax
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zlam_ab_new_syntax.
+
+select buyer_guid, sum(  gross_amount ) as total_sales
+from snwd_so group by buyer_guid
+having sum(  gross_amount ) > 2000000
+ into table @data(itab)
+.
+
+loop at itab into data(wa).
+write: / wa-buyer_guid, wa-total_sales.
+endloop.
+
+
+
+
+*CONSTANTS lc_space type c VALUE cl_abap_char_utilities=>horizontal_tab.
+*
+*select so_id, ceil( gross_amount ) as gross_amount,
+*              concat( concat( cast( ceil( gross_amount ) as CHAR( 20 ) ) , @lc_space ) , currency_code ) as final,
+*            case when gross_amount > 25000 then 'High'
+*                 when gross_amount > 5000 and gross_amount <= 15000 then 'Medium'
+*                 else 'Low' end as order_type
+*
+* from snwd_so into table @data(itab).
+*
+*loop at itab into data(wa).
+*write: / wa-so_id, wa-final, wa-order_type.
+*endloop.
+*
+*select order_type, count( order_type ) as counts
+* from @itab as mytab  group by order_type into table @data(ktab).
+*
+*loop at ktab into data(wa2).
+*write: / wa2-order_type, wa2-counts.
+*endloop.
+
+
+"Simple Case
+*select bp_id,
+*              case bp_role
+*                when '01' then 'Customer'
+*                when '02' then 'Supplier'
+*              end as bp_role
+*, company_name from snwd_bpa into table @data(itab).
+*
+*loop at itab into data(wa).
+*write: / wa-bp_id, wa-bp_role, wa-company_name.
+*endloop.
+
+
+
+
+"String literals in the select query
+*select 'M/s' && company_name as company_name from snwd_bpa into table @data(itab).
+*
+*loop at itab into data(wa).
+*write: / wa-company_name.
+*endloop.
+
+
+
+*data: lv_country type c LENGTH 20 VALUE 'India',
+*      lv_str type string.
+*
+**CONCATENATE 'l love ' '''' lv_country '''' into lv_str .
+*lv_str = |I Love '{ lv_country }'|.
+*WRITE  lv_str.
+
+*data : lo_obj type ref to cl_e2eie_ic_tc_dpc_ext.
+*create object lo_obj.
+*
+*data(lo_new) = new cl_e2eie_ic_tc_dpc_ext(  ).
+
+
+*types : BEGIN OF ty_cricket,
+*            team type c LENGTH 32,
+*            captain type c LENGTH 32,
+*            runs type int4,
+*        END OF TY_CRICKET,
+*        tt_cricket type standard table of ty_cricket with DEFAULT KEY,
+*        BEGIN OF ty_rugby,
+*            scrum type c LENGTH 32,
+*            scrummaster type c LENGTH 32,
+*            goals type int4,
+*            vaccinated type c,
+*        END OF ty_rugby,
+*        tt_rugby type standard table of ty_rugby with DEFAULT KEY..
+
+*DATA : itab type TABLE of ty_cricket,
+*       wa type ty_cricket.
+*
+*wa-team = 'CSK'.
+*wa-captain = 'Dhoni'.
+*wa-runs = 100.
+*append wa to itab.
+*wa-team = 'ECB'.
+*wa-captain = 'Kohli'.
+*wa-runs = 100.
+*append wa to itab.
+*wa-team = 'MUM'.
+*wa-captain = 'Dravid'.
+*wa-runs = 100.
+*append wa to itab.
+
+*data jtab type tt_cricket.
+*data : ktab type tt_rugby.
+*
+*data(itab) = value tt_cricket( ( captain = 'Dhoni' team = 'CSK' runs = 100 )
+*                               ( captain = 'Kohli' team = 'RCB' runs = 120 )
+*                               ( captain = 'Raina' team = 'RR' runs = 60 ) ).
+*
+*jtab = CORRESPONDING #( itab ).
+*ktab = CORRESPONDING #( itab MAPPING
+*                             scrum = team
+*                             scrummaster = captain
+*                             goals = runs ).
+*
+*ktab = value #( for mywa in itab ( scrum = mywa-team
+*                             scrummaster = mywa-captain
+*                             goals = mywa-runs
+*                             vaccinated = cond #( let x = 90 in
+*                                                  when mywa-runs > x then abap_true
+*                                                  else abap_false
+*                                                )
+*                                  ) )  .
+*
+*data(lv_cap) = value #( ktab[ scrum = 'EE' ]-scrummaster optional ).
+*WRITE lv_cap.
+*
+*if line_exists( ktab[ scrum = 'RR' ] ).
+*    data(wax) = ktab[ scrum = 'RR' ].
+*    WRITE : / wax-scrum, wax-scrummaster.
+*ENDIF.
+*
+*uline.
+*
+*loop at itab into data(wa).
+*    write: / wa-team, wa-captain, wa-runs.
+*endloop.
+*uline.
+*loop at ktab into data(wa2).
+*    write: / wa2-scrum, wa2-scrummaster, wa2-goals, wa2-vaccinated.
+*endloop.
+
+"Inline data declaration in ABAP
+*types: BEGIN OF ty_mara,
+*        matnr type mara-matnr,
+*        matkl type mara-matkl,
+*       end of ty_mara.
+*
+*data: itab type table of ty_mara,
+*      wa   type          ty_mara.
+*
+*select matnr matkl from mara into table itab.
+
+*Inline data declaration
+*Since we are doint it in SELECT query we have to also use escaping of host variable
+*We can also use comma seprated field list
+
+*select matnr, matkl from mara into table @data(itab).
+*
+*loop at itab into data(wa).
+*    WRITE : / wa-matnr, wa-matkl.
+*endloop.
+*loop at itab ASSIGNING FIELD-SYMBOL(<fs>).
+*    WRITE : / <fs>-matnr, <fs>-matkl.
+*endloop.
