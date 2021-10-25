@@ -1,0 +1,15 @@
+*&---------------------------------------------------------------------*
+*& Report zjan_oia_call_proxy
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zjan_oia_call_proxy.
+
+select * from ZJAN_OIA_PROXY into table @data(itab).
+
+cl_demo_output=>display_data(
+  EXPORTING
+    value = itab
+*    name  =
+).
+
