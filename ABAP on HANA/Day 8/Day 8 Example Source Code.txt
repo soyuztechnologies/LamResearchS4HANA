@@ -1,0 +1,95 @@
+1. Calculate total of 2 numbers
+
+
+do begin
+
+declare x integer;
+declare y integer;
+declare z integer;
+
+x := 10;
+y := 20;
+
+z := :x + :y;
+
+select :z from dummy;
+end;
+
+
+
+
+2. Adding Numbers using Stored Procedure
+
+create procedure lamab_addnum(in x integer, in y integer,
+out z integer)
+as begin
+--here we can sum the numbers
+z := :x + :y;
+end
+
+
+call lamab_addnum(?,?,?)
+
+
+
+3. IF Condition in SQL Script
+
+create procedure lamab_if(in x integer, out e_type varchar(10))
+as begin
+
+if( mod(x,2) = 0 ) then
+e_type = 'Even';
+else
+e_type = 'Odd';
+end if;
+
+end
+
+call lamab_if(?,?)
+
+
+
+4. Loop Example
+
+create procedure lamab_loop(in num integer, out result decimal(10,2))
+as begin
+
+
+result = 0;
+while :num > 0 do
+result := :result + ( :num * 10 );
+num := :num - 1;
+end while;
+
+
+end
+
+
+
+5. Create and Fill a db table
+
+create procedure lamab_emp(in recs integer)
+as begin
+
+declare i integer;
+declare empName varchar(40);
+
+
+empName := 'Anubhav';
+
+
+
+--ddl (ideally we never use DDL in procedures)
+create column table EMP( empid integer, empname varchar(30),
+primary key(empid));
+
+
+for i in 1..:recs do
+insert into EMP values(:i, :empName || :i);
+end for;
+
+end
+
+
+
+call lamab_emp(60)
