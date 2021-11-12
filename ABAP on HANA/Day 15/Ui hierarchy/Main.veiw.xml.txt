@@ -1,0 +1,44 @@
+
+<mvc:View
+    controllerName="htest.htest.controller.Main"
+    xmlns:mvc="sap.ui.core.mvc"
+    displayBlock="true"
+    xmlns="sap.m"
+    xmlns:smartFilterBar="sap.ui.comp.smartfilterbar"
+    xmlns:t="sap.ui.table"
+    xmlns:smartTable="sap.ui.comp.smarttable"
+>
+        <Shell id="shell">
+		<App id="app">
+			<pages>
+				<Page id="page" title="{i18n>title}">
+    <content>
+        <smartFilterBar:SmartFilterBar id="smartFilterBar" persistencyKey="UniqueAndStablePersistencyKey"
+            entitySet="ZATS_C_EMPHOURS" enableBasicSearch="true" showClearButton="true">
+            <smartFilterBar:controlConfiguration>
+                <smartFilterBar:ControlConfiguration key="CostCenter" index="1" label="Cost Center"
+                    groupId="_BASIC" width="300px" visibleInAdvancedArea="true">
+                </smartFilterBar:ControlConfiguration>
+                <smartFilterBar:ControlConfiguration key="Validated" filterType="single"/>
+            </smartFilterBar:controlConfiguration>
+            
+            <smartFilterBar:layoutData>
+                <FlexItemData shrinkFactor="0"/>
+            </smartFilterBar:layoutData>
+        </smartFilterBar:SmartFilterBar>
+        
+        <smartTable:SmartTable id="smartTable" entitySet="ZATS_C_EMPHOURS" smartFilterId="smartFilterBar" 
+                tableBindingPath="/ZATS_C_EMPHOURS" useTablePersonalisation="true" header="Line Items" 
+                showRowCount="true">
+                <t:TreeTable
+                    id="treeTable" rootLevel="0" selectionMode="Single" visibleRowCount="10"
+                    >
+                </t:TreeTable>
+        </smartTable:SmartTable>
+    </content>
+				</Page>
+			</pages>
+		</App>
+	</Shell>
+</mvc:View>
+

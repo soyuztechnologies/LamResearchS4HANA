@@ -1,65 +1,3 @@
-@AbapCatalog.sqlViewName: 'ZDXCXXEMPMGR'
-@AbapCatalog.compiler.compareFilter: true
-@AbapCatalog.preserveKey: true
-@AccessControl.authorizationCheck: #CHECK
-@EndUserText.label: 'Create Hierarchy'
-define view ZDXC_XX_EMPMGR as select from zoft_emp_mgr
-association[1..*] to ZDXC_XX_EMPMGR as _Manager on
-$projection.managerid = _Manager.empid
-{
-//zoft_emp_mgr
-key empid,
-key empname,
-managerid,
-costcenter,
-_Manager
-}
-
-
-
-define hierarchy zdxc_xx_emphier_new
-as parent child hierarchy (
-source ZDXC_XX_EMPMGR
-child to parent association _Manager
-siblings order by empid ascending
-multiple parents not allowed
-)
-{
-empid,
-empname,
-managerid,
-$node.hierarchy_is_cycle as hier_cycle,
-$node.hierarchy_is_orphan as orphan,
-$node.hierarchy_level as hier_level,
-$node.hierarchy_parent_rank as parent_rank,
-$node.hierarchy_rank as rank,
-$node.hierarchy_tree_size as hier_size
-}
-
-
-
-*&---------------------------------------------------------------------*
-*& Report zdxc_xx_calc_emp
-*&---------------------------------------------------------------------*
-*&
-*&---------------------------------------------------------------------*
-report zdxc_xx_calc_emp.
-
-parameters : mgrid type pernr_d.
-
-select * from hierarchy_descendants( source zdxc_xx_emphier_new
-start where managerid = @mgrid
-) into table @data(itab).
-
- Loop at itab into data(wa).
-write: / wa-empid, wa-empname.
-endloop.
-
-
-
-
-
-
 ===============================Classical Hierarchy===========================================
 
 @AbapCatalog.sqlViewName: 'ZATSPEMPLOYEE'
@@ -166,3 +104,7 @@ define view ZATS_C_EMPHOURS as select from ZATS_CO_EMPHOURS {
      @UI.lineItem: [{position: 20 }]
     0 as EffortUtilizating
 }
+
+
+
+
