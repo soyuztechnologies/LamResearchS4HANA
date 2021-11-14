@@ -1,0 +1,35 @@
+-------CDS BOPF-------
+
+
+@AbapCatalog.sqlViewName: 'ZMARCDSBO'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Our CDS BOPF Scenario'
+@VDM.viewType: #CONSUMPTION
+@OData.publish: true
+
+define view ZMAR_CDS_BOPF as select from zoft_meals
+association[1] to scarr as _Airlines
+on $projection.carrid = _Airlines.carrid
+association[1] to sflight as _FlightConn
+on $projection.carrid = _FlightConn.carrid and
+$projection.connid = _FlightConn.connid
+association[1] to smeal as _Meals on
+$projection.meal = _Meals.mealnumber
+ {
+    //zoft_meals
+    key meal_id,
+    @ObjectModel.foreignKey.association: '_Airlines'
+    carrid,
+    connid,
+    meal,
+    total_seats,
+    status,
+    _Airlines,
+    _FlightConn,
+    _Meals
+}
+
+
+

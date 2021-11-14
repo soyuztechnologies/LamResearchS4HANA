@@ -31,7 +31,7 @@
 				<Annotation Term="UI.LineItem">
 					<Collection>
 						<Record Type="UI.DataField">
-							<PropertyValue Property="Value" Path="empid_NodeText"/>
+							<PropertyValue Property="Value" Path="Empid_NodeText"/>
 						</Record>
 						<Record Type="UI.DataField">
 							<PropertyValue Property="Value" Path="EffortUtilization_F"/>
