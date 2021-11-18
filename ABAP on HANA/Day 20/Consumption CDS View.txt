@@ -1,0 +1,50 @@
+-----Consumption CDS View------
+
+
+@AbapCatalog.sqlViewName: 'ZAPRCOVIDC'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Consumption View, Analytic Query'
+@Analytics.query: true
+@OData.publish: true
+
+@UI.chart: [{
+    qualifier: 'cases',
+    chartType: #COLUMN_STACKED,
+    dimensions: ['date_announced','detected_state'],
+    dimensionAttributes: [{dimension: 'detected_state',role: #SERIES },
+    {dimension: 'date_announced', role: #CATEGORY}],
+    measures: ['num_cases'],
+    measureAttributes: [{measure: 'num_cases',role: #AXIS_1 }]
+ }]
+ 
+ @UI.presentationVariant: [{
+    qualifier: 'AnubhavOberoy',
+    visualizations: [{type: #AS_CHART, qualifier: 'cases' }]
+  }]
+ 
+define view ZAPR_C_COVID as select from ZAPR_CO_COVID {
+//ZAPR_CO_COVID
+    key entry_id,
+    @UI.selectionField: [{position: 1 }]
+    @UI.lineItem: [{position: 1 }]
+    @EndUserText.label: 'Date'
+    key date_announced,
+    @UI.lineItem: [{position: 2 }]
+    @EndUserText.label: 'City'
+    key detected_district,
+    @UI.lineItem: [{position: 3 }]
+    @EndUserText.label: 'State'
+    key detected_state,
+    @UI.lineItem: [{position: 4 }]
+    @UI.selectionField: [{position: 2 }]
+    @EndUserText.label: 'State Code'
+    key state_code,
+    @UI.lineItem: [{position: 5 }]
+    @EndUserText.label: 'Cases'
+    num_cases,
+    @UI.lineItem: [{position: 6 }]
+    @EndUserText.label: 'Status'
+    current_status    
+}
