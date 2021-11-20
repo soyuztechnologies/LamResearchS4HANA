@@ -1,0 +1,120 @@
+-------Annotation File------
+ 
+<Annotations Target="SAP.ZINV_C_COVIDType" >
+            <Annotation Term="UI.Chart" >
+                <Record Type="UI.ChartDefinitionType">
+                    <PropertyValue Property="ChartType" EnumMember="UI.ChartType/ColumnStacked"/>
+                    <PropertyValue Property="Dimensions">
+                        <Collection>
+                            <PropertyPath>DetectedState</PropertyPath>
+                            <PropertyPath>DateAnnounced</PropertyPath>
+                        </Collection>
+                    </PropertyValue>
+                    <PropertyValue Property="Measures">
+                        <Collection>
+                            <PropertyPath>NumCases</PropertyPath>
+                        </Collection>
+                    </PropertyValue>
+                    <PropertyValue Property="DimensionAttributes">
+                        <Collection>
+                            <Record Type="UI.ChartDimensionAttributeType">
+                                <PropertyValue Property="Dimension" PropertyPath="DateAnnounced"/>
+                                <PropertyValue Property="Role" EnumMember="UI.ChartDimensionRoleType/Category"/>
+                            </Record>
+                            <Record Type="UI.ChartDimensionAttributeType">
+                                <PropertyValue Property="Dimension" PropertyPath="DetectedState"/>
+                                <PropertyValue Property="Role" EnumMember="UI.ChartDimensionRoleType/Series"/>
+                            </Record>
+                        </Collection>
+                    </PropertyValue>
+                    <PropertyValue Property="MeasureAttributes">
+                        <Collection>
+                            <Record Type="UI.ChartMeasureAttributeType">
+                                <PropertyValue Property="Measure" PropertyPath="NumCases"/>
+                            </Record>
+                        </Collection>
+                    </PropertyValue>
+                </Record>
+            </Annotation>
+            <Annotation Term="UI.Chart" Qualifier="VFC_STATE">
+                <Record Type="UI.ChartDefinitionType">
+                    <PropertyValue Property="ChartType" EnumMember="UI.ChartType/Column"/>
+                    <PropertyValue Property="Dimensions">
+                        <Collection>
+                            <PropertyPath>DetectedState</PropertyPath>
+                        </Collection>
+                    </PropertyValue>
+                    <PropertyValue Property="Measures">
+                        <Collection>
+                            <PropertyPath>NumCases</PropertyPath>
+                        </Collection>
+                    </PropertyValue>
+                </Record>
+            </Annotation>
+            <Annotation Term="UI.PresentationVariant" Qualifier="PVF_STATE">
+                <Record Type="UI.PresentationVariantType">
+                    <PropertyValue Property="Visualizations">
+                        <Collection>
+                            <AnnotationPath>@UI.Chart#VFC_STATE</AnnotationPath>
+                        </Collection>
+                    </PropertyValue>
+                </Record>
+            </Annotation>
+            <Annotation Term="UI.Chart" Qualifier="VFC_DISTRICT">
+                <Record Type="UI.ChartDefinitionType">
+                    <PropertyValue Property="ChartType" EnumMember="UI.ChartType/Donut"/>
+                    <PropertyValue Property="Dimensions">
+                        <Collection>
+                            <PropertyPath>DetectedDistrict</PropertyPath>
+                        </Collection>
+                    </PropertyValue>
+                    <PropertyValue Property="Measures">
+                        <Collection>
+                            <PropertyPath>NumCases</PropertyPath>
+                        </Collection>
+                    </PropertyValue>
+                </Record>
+            </Annotation>
+            <Annotation Term="UI.PresentationVariant" Qualifier="PVF_DISTRICT">
+                <Record Type="UI.PresentationVariantType">
+                    <PropertyValue Property="Visualizations">
+                        <Collection>
+                            <AnnotationPath>@UI.Chart#VFC_DISTRICT</AnnotationPath>
+                        </Collection>
+                    </PropertyValue>
+                </Record>
+            </Annotation>
+
+        </Annotations>
+        <Annotations Target="SAP.ZINV_C_COVIDType/DetectedState" >
+            <Annotation Term="Common.ValueList">
+                <Record Type="Common.ValueListType">
+                    <PropertyValue Property="CollectionPath" String="ZINV_C_COVID"/>
+                    <PropertyValue Property="PresentationVariantQualifier" String="PVF_STATE"/>
+                    <PropertyValue Property="Parameters">
+                        <Collection>
+                            <Record Type="Common.ValueListParameterInOut">
+                                <PropertyValue Property="LocalDataProperty" PropertyPath="DetectedState"/>
+                                <PropertyValue Property="ValueListProperty" String="DetectedState"/>
+                            </Record>
+                        </Collection>
+                    </PropertyValue>
+                </Record>
+            </Annotation>
+        </Annotations>
+        <Annotations Target="SAP.ZINV_C_COVIDType/DetectedDistrict" >
+            <Annotation Term="Common.ValueList">
+                <Record Type="Common.ValueListType">
+                    <PropertyValue Property="CollectionPath" String="ZINV_C_COVID"/>
+                    <PropertyValue Property="PresentationVariantQualifier" String="PVF_DISTRICT"/>
+                    <PropertyValue Property="Parameters">
+                        <Collection>
+                            <Record Type="Common.ValueListParameterInOut">
+                                <PropertyValue Property="LocalDataProperty" PropertyPath="DetectedDistrict"/>
+                                <PropertyValue Property="ValueListProperty" String="DetectedDistrict"/>
+                            </Record>
+                        </Collection>
+                    </PropertyValue>
+                </Record>
+            </Annotation>
+        </Annotations>

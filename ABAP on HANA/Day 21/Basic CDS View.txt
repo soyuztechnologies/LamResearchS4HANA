@@ -1,0 +1,19 @@
+-----CDS View------
+
+@AbapCatalog.sqlViewName: 'ZAPRCOVID'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Cube view, total cases by dimensions'
+@Analytics.dataCategory: #CUBE
+define view ZAPR_CO_COVID as select from zcovid {
+    //zcovid
+    key entry_id,
+    key date_announced,
+    key detected_district,
+    key detected_state,
+    key state_code,
+    @DefaultAggregation: #SUM
+    num_cases,
+    current_status
+}
