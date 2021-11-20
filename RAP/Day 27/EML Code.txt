@@ -1,0 +1,142 @@
+
+CLASS zats_00_eml_learning DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+    INTERFACES if_oo_adt_classrun.
+    data: lv_type type c value 'R'.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+
+CLASS zats_00_eml_learning IMPLEMENTATION.
+  METHOD if_oo_adt_classrun~main.
+
+     case lv_type.
+        when 'R'.
+
+            read ENTITIES of ZATS_00_M_TRAVEL
+                entity Travel from value #( ( travel_id = '00000002'
+                                              %control =
+                                              value #( booking_fee = if_abap_behv=>mk-on
+                                                       description = if_abap_behv=>mk-on
+                                                       currency_code = if_abap_behv=>mk-on )
+
+
+                 ) )
+                result data(lt_found_records).
+
+            if lt_found_records is NOT INITIAL.
+                out->write(
+                  EXPORTING
+                    data   = lt_found_records
+*                    name   =
+*                  RECEIVING
+*                    output =
+                ).
+            ENDIF.
+
+        when 'C'.
+                data: it_data_create type table for create ZATS_00_M_TRAVEL.
+                it_data_create = value #(
+                                            ( travel_id = '00000002'
+                                              agency_id = 70003
+                                              customer_id = 3
+                                              begin_date = cl_abap_context_info=>get_system_date( )
+                                              end_date = cl_abap_context_info=>get_system_date(  ) + 30
+                                              booking_fee = 50
+                                              total_price = 5000
+                                              currency_code = 'USD'
+                                              overall_status = 'O'
+                                              description = 'Wallah'
+                                              %control = VALUE #( agency_id = if_abap_behv=>mk-on
+                                                                  travel_id =  if_abap_behv=>mk-on
+                                                                  customer_id = if_abap_behv=>mk-on
+                                                                  begin_date = if_abap_behv=>mk-on
+                                                                  end_date = if_abap_behv=>mk-on
+                                                                  booking_fee = if_abap_behv=>mk-on
+                                                                  total_price = if_abap_behv=>mk-on
+                                                                  currency_code = if_abap_behv=>mk-on
+                                                                  overall_status = if_abap_behv=>mk-on
+                                                                  description = if_abap_behv=>mk-on
+                                                                 )
+                                             )
+                                        ).
+
+
+                MODIFY ENTITIES OF ZATS_00_M_TRAVEL
+                    ENTITY Travel
+                    create from it_data_create
+                    FAILED data(lt_data_failed)
+                    REPORTED data(lt_reported).
+
+                if lt_data_failed is not INITIAL.
+                    out->write(
+                      EXPORTING
+                        data   = lt_data_failed
+*                        name   =
+*                      RECEIVING
+*                        output =
+                    ).
+
+                ENDIF.
+    when 'U'.
+
+        data: it_instance_u type table for update ZATS_00_M_TRAVEL.
+
+        it_instance_u =  value #( ( travel_id = '00000002' description = 'Fantastic 4'
+                                    %control = value #( description = if_abap_behv=>mk-on )
+                                 ) ).
+
+        modify ENTITIES of ZATS_00_M_TRAVEL
+            entity Travel
+            update from it_instance_u
+            failed lt_data_failed
+            reported lt_reported.
+
+        if lt_data_failed is not INITIAL.
+            out->write(
+              EXPORTING
+                data   = lt_data_failed
+*                name   =
+*              RECEIVING
+*                output =
+            ).
+
+        ENDIF.
+
+
+    when 'D'.
+
+        data: it_instance_d type table for delete ZATS_00_M_TRAVEL.
+
+        it_instance_d =  value #( ( travel_id = '00000002'
+                                 ) ).
+
+        modify ENTITIES of ZATS_00_M_TRAVEL
+            entity Travel
+            delete from it_instance_d
+            failed lt_data_failed
+            reported lt_reported.
+
+        if lt_data_failed is not INITIAL.
+            out->write(
+              EXPORTING
+                data   = lt_data_failed
+*                name   =
+*              RECEIVING
+*                output =
+            ).
+
+        ENDIF.
+
+    endcase.
+    COMMIT ENTITIES.
+
+  ENDMETHOD.
+
+ENDCLASS.
