@@ -1,0 +1,104 @@
+===================CDS View================
+
+@AbapCatalog.sqlViewName: 'ZATSIBP'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #NOT_REQUIRED
+@EndUserText.label: 'Basic, Master Data BP'
+define view ZATS_00_I_BP as select from zats_00_bp {
+    //zats_00_bp
+    key bp_id,
+    bp_role,
+    company_name,
+    street,
+    city,
+    country,
+    region
+}
+
+
+
+@AbapCatalog.sqlViewName: 'ZATSPPROD'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Product View'
+define view ZATS_00_P_PROD as select from zats_00_product {
+    //zats_00_product
+    key product_id,
+    name,
+    category,
+    price,
+    currency,
+    discount
+}
+
+
+@AbapCatalog.sqlViewName: 'ZATSISBP'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Sales Header with BP'
+define view ZATS_00_I_SALESHDR as select from zats_00_so
+association[1] to zats_00_bp as _Bp on 
+$projection.buyer = _Bp.bp_id
+ {
+//zats_00_so
+key order_id,
+order_no,
+buyer,
+gross_amount,
+currency,
+_Bp
+}
+
+
+@AbapCatalog.sqlViewName: 'ZATSSO'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Sales Composite View'
+define view ZATS_00_I_SALES
+with parameters
+    p_reg: abap.char(3)
+ as select from zats_00_so_i 
+association[1] to ZATS_00_P_PROD as _Products on
+    $projection.product = _Products.product_id 
+association[1] to ZATS_00_I_SALESHDR as _SalesHdr on
+    $projection.order_id = _SalesHdr.order_id
+{
+    //zats_00_so_i
+    key item_id as ItemId,
+    order_id,
+    _SalesHdr.order_no as OrderNo,
+    _SalesHdr._Bp.company_name as Company,
+    _SalesHdr._Bp.country as Country,
+    _SalesHdr._Bp.region as Region,
+    _Products.name as ProductName,
+    _Products.category as Category,
+    product,
+    qty as Quantity,
+    uom as UnitOfMeasure,
+    amount as Amount,
+    currency as Currency
+    
+} where _SalesHdr._Bp.region = $parameters.p_reg
+
+
+
+@AbapCatalog.sqlViewName: 'ZATSCSOFT'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'software sales in a given region'
+
+define view zats_00_c_softsales as 
+select from ZATS_00_I_SALES (p_reg : 'APJ' ) {
+    key Category,
+    key Currency,
+    sum( Amount ) as TotalSales
+    
+} group by Category, Currency
+
+
+
