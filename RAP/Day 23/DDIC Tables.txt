@@ -1,0 +1,82 @@
+PRE-REQUISITE:
+ZATS_00_DE_ID - point to domain below
+ZATS_00_DO_ID - 32 char
+
+@EndUserText.label : 'Business Partners'
+@AbapCatalog.enhancementCategory : #NOT_EXTENSIBLE
+@AbapCatalog.tableCategory : #TRANSPARENT
+@AbapCatalog.deliveryClass : #A
+@AbapCatalog.dataMaintenance : #LIMITED
+define table zats_00_bp {
+  key client   : abap.clnt not null;
+  key bp_id    : zats_00_de_id not null;
+  bp_role      : zats_00_de_role;
+  company_name : abap.string(256);
+  street       : abap.string(256);
+  city         : abap.char(80);
+  country      : land1;
+  region       : abap.char(3);
+
+}
+
+@EndUserText.label : 'Products'
+@AbapCatalog.enhancementCategory : #NOT_EXTENSIBLE
+@AbapCatalog.tableCategory : #TRANSPARENT
+@AbapCatalog.deliveryClass : #A
+@AbapCatalog.dataMaintenance : #LIMITED
+define table zats_00_product {
+  key client     : abap.clnt not null;
+  key product_id : zats_00_de_id not null;
+  name           : abap.char(100);
+  category       : abap.char(80);
+  @Semantics.amount.currencyCode : 'zats_00_product.currency'
+  price          : abap.curr(10,2);
+  currency       : abap.cuky;
+  discount       : abap.int1;
+
+}
+
+@EndUserText.label : 'Sales Orders'
+@AbapCatalog.enhancementCategory : #NOT_EXTENSIBLE
+@AbapCatalog.tableCategory : #TRANSPARENT
+@AbapCatalog.deliveryClass : #A
+@AbapCatalog.dataMaintenance : #LIMITED
+define table zats_00_so {
+  key client   : abap.clnt not null;
+  key order_id : zats_00_de_id not null;
+  order_no     : abap.int4;
+  @AbapCatalog.foreignKey.screenCheck : false
+  buyer        : zats_00_de_id not null
+    with foreign key [0..*,1] zats_00_bp
+      where bp_id = zats_00_so.buyer;
+  @Semantics.amount.currencyCode : 'zats_00_so.currency'
+  gross_amount : abap.curr(10,2);
+  currency     : abap.cuky;
+  include zats_00_admin_data;
+
+}
+
+
+@EndUserText.label : 'Sales Orders Items'
+@AbapCatalog.enhancementCategory : #NOT_EXTENSIBLE
+@AbapCatalog.tableCategory : #TRANSPARENT
+@AbapCatalog.deliveryClass : #A
+@AbapCatalog.dataMaintenance : #LIMITED
+define table zats_00_so_i {
+  key client  : abap.clnt not null;
+  key item_id : zats_00_de_id not null;
+  order_id    : zats_00_de_id not null;
+  @AbapCatalog.foreignKey.screenCheck : false
+  product     : zats_00_de_id not null
+    with foreign key [0..*,1] zats_00_product
+      where product_id = zats_00_so_i.product;
+  @Semantics.quantity.unitOfMeasure : 'zats_00_so_i.uom'
+  qty         : abap.quan(2,1);
+  uom         : abap.unit(2);
+  @Semantics.amount.currencyCode : 'zats_00_so_i.currency'
+  amount      : abap.curr(10,2);
+  currency    : abap.cuky;
+  include zats_00_admin_data;
+
+}
+
