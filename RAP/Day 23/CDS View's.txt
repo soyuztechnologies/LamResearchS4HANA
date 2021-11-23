@@ -1,5 +1,18 @@
 ===================CDS View================
 
+@EndUserText.label: 'DCL for Business Partner'
+@MappingRole: true
+define role ZATS_00_I_BP {
+    grant
+        select
+            on
+                ZATS_00_I_BP
+                    where
+                        ( country ) = aspect pfcg_auth( ZATS_00 , ZCTRY , ACTVT = '03' );
+                        
+}
+
+
 @AbapCatalog.sqlViewName: 'ZATSIBP'
 @AbapCatalog.compiler.compareFilter: true
 @AbapCatalog.preserveKey: true
