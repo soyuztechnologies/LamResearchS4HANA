@@ -2,6 +2,20 @@ PRE-REQUISITE:
 ZATS_00_DE_ID - point to domain below
 ZATS_00_DO_ID - 32 char
 
+=====================Structure===================
+
+@EndUserText.label : 'Administration Data'
+@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE
+define structure zats_00_admin_data {
+  created_by : syuname;
+  created_on : timestamp;
+  changed_by : syuname;
+  changed_on : timestamp;
+
+}
+
+====================Table's=====================
+
 @EndUserText.label : 'Business Partners'
 @AbapCatalog.enhancementCategory : #NOT_EXTENSIBLE
 @AbapCatalog.tableCategory : #TRANSPARENT
