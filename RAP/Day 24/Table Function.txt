@@ -1,0 +1,66 @@
+====================Table Function Code====================
+
+@EndUserText.label: 'Order example for cds table function'
+define table function ZATS_00_TF_CDS
+with parameters
+@Environment.systemField: #CLIENT
+ p_clnt : abap.clnt
+returns {
+  client : abap.clnt;
+  order_no : abap.int4;
+  gross_amount: abap.int4;
+  gross_dis_amount: abap.int4;
+}
+implemented by method zcl_ats_00_sqlscript=>getorders;
+
+
+CLASS zcl_ats_00_sqlscript DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+    INTERFACES if_amdp_marker_hdb.
+    CLASS-METHODS getproddata
+            IMPORTING
+                value(p_id) type zats_00_de_id
+            EXPORTING
+            value(ev_price) type int4
+            value(ev_price_dis) type int4.
+    CLASS-METHODS getorders for table function ZATS_00_TF_CDS.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+CLASS zcl_ats_00_sqlscript IMPLEMENTATION.
+
+    METHOD getorders BY DATABASE function FOR HDB
+            LANGUAGE SQLSCRIPT OPTIONS READ-ONLY using
+            zats_00_so zats_00_so_i zats_00_product.
+           lt_orders = select hdr.client , hdr.order_no, item.amount,
+                              ( item.amount * ( 100 - prod.discount ) / 100 ) as amount_dis
+                              from     zats_00_so as hdr
+                              inner join zats_00_so_i as item
+                               on hdr.order_id = item.order_id
+                              inner join zats_00_product as prod
+                                on item.product = prod.product_id where hdr.client = :p_clnt;
+
+           return select client, order_no, sum( amount ) as gross_amount,
+                                sum( amount_dis ) as gross_dis_amount from  :lt_orders
+                                group by  client, order_no;
+
+    ENDmethod.
+
+    METHOD getproddata BY DATABASE PROCEDURE FOR HDB
+            LANGUAGE SQLSCRIPT OPTIONS READ-ONLY using zats_00_product.
+
+        DECLARE lv_price, lv_discount INTEGER;
+        SELECT price, discount into lv_price, lv_discount
+             from zats_00_product where product_id = :p_id;
+        ev_price =      lv_price;
+        ev_price_dis = ( lv_price * ( 100 - lv_discount ) / 100 );
+
+    ENDMETHOD.
+
+ENDCLASS.
+
