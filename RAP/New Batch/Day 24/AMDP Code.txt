@@ -1,0 +1,66 @@
+CLASS zcl_lam_ab_amdp1 DEFINITION
+PUBLIC
+FINAL
+CREATE PUBLIC .
+
+PUBLIC SECTION.
+
+INTERFACES if_amdp_marker_hdb .
+class-METHODS getproductdata IMPORTING value(p_id) type zlam_ab_dte_id
+EXPORTING value(ev_price) type int4
+value(ev_price_dis) type int4.
+
+PROTECTED SECTION.
+PRIVATE SECTION.
+ENDCLASS.
+
+CLASS zcl_lam_ab_amdp1 IMPLEMENTATION.
+METHOD getproductdata by DATABASE PROCEDURE FOR HDB LANGUAGE SQLSCRIPT
+OPTIONS READ-ONLY using zlam_ab_products.
+
+declare lv_price, lv_discount integer;
+select price, discount into lv_price, lv_discount
+from zlam_ab_products where product_id = :p_id;
+
+ev_price = lv_price;
+ev_price_dis = ( lv_price * ( 100 - :lv_discount ) / 100 ) ;
+
+ENDMETHOD.
+
+ENDCLASS.
+
+
+
+CLASS zcl_zlam_ab_first DEFINITION
+PUBLIC
+FINAL
+CREATE PUBLIC .
+
+PUBLIC SECTION.
+
+INTERFACES if_oo_adt_classrun .
+PROTECTED SECTION.
+PRIVATE SECTION.
+ENDCLASS.
+
+CLASS zcl_zlam_ab_first IMPLEMENTATION.
+METHOD if_oo_adt_classrun~main.
+zcl_lam_ab_amdp=>getproductdata(
+EXPORTING
+p_id = '12D4E2B9810F1EEC939FD36B89F5F3B4'
+IMPORTING
+ev_price = data(lv_price)
+ev_price_dis = data(lv_price_dis)
+).
+
+
+out->write(
+EXPORTING
+data = |The price is { lv_price } and discounted one is { lv_price_dis }|
+* name =
+* RECEIVING
+* output =
+).
+
+ENDMETHOD.
+ENDCLASS.

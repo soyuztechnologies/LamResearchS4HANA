@@ -1,0 +1,90 @@
+====================Business Partner Table==================
+
+@EndUserText.label : 'Business partners'
+@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE
+@AbapCatalog.tableCategory : #TRANSPARENT
+@AbapCatalog.deliveryClass : #A
+@AbapCatalog.dataMaintenance : #ALLOWED
+define table zlam_ab_bp {
+key client : abap.clnt not null;
+key bp_id : zlam_ab_dte_id not null;
+bp_role : zlam_ab_dte_role;
+@EndUserText.label : 'Company Name'
+company_name : abap.string(256);
+street : abap.string(256);
+city : abap.char(80);
+country : land1;
+region : abap.char(3);
+
+}
+
+
+====================Product Table==================
+
+@EndUserText.label : 'Product table'
+@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE
+@AbapCatalog.tableCategory : #TRANSPARENT
+@AbapCatalog.deliveryClass : #A
+@AbapCatalog.dataMaintenance : #RESTRICTED
+define table zlam_ab_products {
+key client : abap.clnt not null;
+key product_id : zlam_ab_dte_id not null;
+name : abap.char(100);
+category : abap.char(80);
+@Semantics.amount.currencyCode : 'zlam_ab_products.currency_code'
+price : abap.curr(10,2);
+currency_code : abap.cuky;
+discount : abap.int1;
+
+}
+
+
+====================Order Header Table==================
+
+@EndUserText.label : 'Order header db table'
+@AbapCatalog.enhancement.category : #EXTENSIBLE_ANY
+@AbapCatalog.tableCategory : #TRANSPARENT
+@AbapCatalog.deliveryClass : #A
+@AbapCatalog.dataMaintenance : #RESTRICTED
+define table zlam_ab_orders {
+key client : abap.clnt not null;
+key order_id : zlam_ab_dte_id not null;
+order_no : abap.int4;
+@AbapCatalog.foreignKey.screenCheck : true
+buyer : zlam_ab_dte_id not null
+with foreign key [0..*,1] zlam_ab_bp
+where bp_id = zlam_ab_orders.buyer;
+@Semantics.amount.currencyCode : 'zlam_ab_orders.currency'
+gross_amount : abap.curr(10,2);
+currency : abap.cuky;
+include zlam_ab_str_admin;
+
+}
+
+
+====================Order Items Table==================
+
+@EndUserText.label : 'Order Items database table'
+@AbapCatalog.enhancement.category : #EXTENSIBLE_ANY
+@AbapCatalog.tableCategory : #TRANSPARENT
+@AbapCatalog.deliveryClass : #A
+@AbapCatalog.dataMaintenance : #RESTRICTED
+define table zlam_ab_order_i {
+key client : abap.clnt not null;
+key item_id : zlam_ab_dte_id not null;
+order_id : zlam_ab_dte_id not null;
+item_pos : abap.int1;
+order_no : abap.int4;
+@AbapCatalog.foreignKey.screenCheck : true
+product : zlam_ab_dte_id not null
+with foreign key [0..*,1] zlam_ab_products
+where product_id = zlam_ab_order_i.product;
+@Semantics.quantity.unitOfMeasure : 'zlam_ab_order_i.unit'
+qty : abap.quan(3,0);
+unit : abap.unit(3);
+@Semantics.amount.currencyCode : 'zlam_ab_orders.currency'
+gross_amount : abap.curr(10,2);
+currency : abap.cuky;
+include zlam_ab_str_admin;
+
+}

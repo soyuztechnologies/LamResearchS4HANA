@@ -1,0 +1,10 @@
+==================Service Definition===================
+
+
+@EndUserText.label: 'Sales Service Definition'
+define service ZLAM_AB_SDEF_SALES {
+expose ZCO_LAM_AB_SALES as SalesOrder;
+expose ZI_LAM_AB_SLS_HDR as Items;
+expose ZI_LAM_AB_PROD as Products;
+expose ZI_LAM_AB_BP as Customers;
+}

@@ -1,0 +1,147 @@
+==================Product CDS===================
+
+
+@AbapCatalog.viewEnhancementCategory: [#NONE]
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Interface Basic master'
+@Metadata.ignorePropagatedAnnotations: true
+@ObjectModel.usageType:{
+serviceQuality: #X,
+sizeCategory: #S,
+dataClass: #MIXED
+}
+define view entity ZI_LAM_AB_PROD as select from zlam_ab_products {
+key product_id as ProductId,
+name as Name,
+category as Category,
+@Semantics.amount.currencyCode: 'CurrencyCode'
+price as Price,
+currency_code as CurrencyCode,
+discount as Discount,
+case when price > 100 then 'expensive'
+else 'nominal' end as priceType
+}
+
+
+==================Business Partner CDS===================
+
+
+@AbapCatalog.viewEnhancementCategory: [#NONE]
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Business partner'
+@Metadata.ignorePropagatedAnnotations: true
+@ObjectModel.usageType:{
+serviceQuality: #X,
+sizeCategory: #S,
+dataClass: #MIXED
+}
+define view entity ZI_LAM_AB_BP as select from zlam_ab_bp {
+key bp_id as BpId,
+bp_role as BpRole,
+company_name as CompanyName,
+street as Street,
+city as City,
+country as Country,
+region as Region,
+case when bp_role = '01' then 'Customer'
+else 'Supplier' end as Role
+}
+
+
+==================Sales Order Header CDS===================
+
+
+@AbapCatalog.viewEnhancementCategory: [#NONE]
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Sales header data with BP'
+@Metadata.ignorePropagatedAnnotations: true
+@ObjectModel.usageType:{
+serviceQuality: #X,
+sizeCategory: #S,
+dataClass: #MIXED
+}
+define view entity ZI_LAM_AB_SLS_HDR as select from zlam_ab_orders
+association[1] to ZI_LAM_AB_BP as _Customer
+on $projection.Buyer = _Customer.BpId
+{
+key zlam_ab_orders.order_id as OrderId,
+zlam_ab_orders.order_no as OrderNo,
+zlam_ab_orders.buyer as Buyer,
+@Semantics.amount.currencyCode: 'Currency'
+zlam_ab_orders.gross_amount as GrossAmount,
+zlam_ab_orders.currency as Currency,
+zlam_ab_orders.created_by as CreatedBy,
+zlam_ab_orders.created_on as CreatedOn,
+zlam_ab_orders.changed_by as ChangedBy,
+zlam_ab_orders.changed_on as ChangedOn,
+_Customer
+}
+
+
+==================Sales Order Items CDS===================
+
+
+@AbapCatalog.viewEnhancementCategory: [#NONE]
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Items View'
+@Metadata.ignorePropagatedAnnotations: true
+@ObjectModel.usageType:{
+serviceQuality: #X,
+sizeCategory: #S,
+dataClass: #MIXED
+}
+define view entity ZI_LAM_AB_SLS_ITEM as select from zlam_ab_order_i
+association[1] to zlam_ab_products as _Products on
+$projection.Product = _Products.product_id
+{
+key zlam_ab_order_i.item_id as ItemId,
+zlam_ab_order_i.order_id as OrderId,
+zlam_ab_order_i.item_pos as ItemPos,
+zlam_ab_order_i.order_no as OrderNo,
+zlam_ab_order_i.product as Product,
+@Semantics.quantity.unitOfMeasure: 'Unit'
+zlam_ab_order_i.qty as Qty,
+zlam_ab_order_i.unit as Unit,
+@Semantics.amount.currencyCode: 'Currency'
+zlam_ab_order_i.gross_amount as GrossAmount,
+zlam_ab_order_i.currency as Currency,
+zlam_ab_order_i.created_by as CreatedBy,
+zlam_ab_order_i.created_on as CreatedOn,
+zlam_ab_order_i.changed_by as ChangedBy,
+zlam_ab_order_i.changed_on as ChangedOn,
+_Products.category as ProductCategory,
+_Products.name as ProductName
+}
+
+
+
+==================Sales Composition CDS===================
+
+
+@AbapCatalog.viewEnhancementCategory: [#NONE]
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Sales Composition'
+@Metadata.ignorePropagatedAnnotations: true
+@ObjectModel.usageType:{
+serviceQuality: #X,
+sizeCategory: #S,
+dataClass: #MIXED
+}
+define view entity ZCO_LAM_AB_SALES as select from ZI_LAM_AB_SLS_HDR
+association[1..*] to ZI_LAM_AB_SLS_ITEM as _Items on
+$projection.OrderId = _Items.OrderId
+{
+key ZI_LAM_AB_SLS_HDR.OrderId,
+ZI_LAM_AB_SLS_HDR.OrderNo,
+ZI_LAM_AB_SLS_HDR.Buyer,
+@Semantics.amount.currencyCode: 'Currency'
+ZI_LAM_AB_SLS_HDR.GrossAmount,
+ZI_LAM_AB_SLS_HDR.Currency,
+ZI_LAM_AB_SLS_HDR.CreatedBy,
+ZI_LAM_AB_SLS_HDR.CreatedOn,
+_Customer.Country,
+_Customer.CompanyName,
+/* Associations */
+ZI_LAM_AB_SLS_HDR._Customer,
+_Items
+}

@@ -1,0 +1,9 @@
+@EndUserText.label : 'Structure for maintaining admin data'
+@AbapCatalog.enhancement.category : #EXTENSIBLE_ANY
+define structure zlam_ab_str_admin {
+created_by : syuname;
+created_on : timestamp;
+changed_by : syuname;
+changed_on : timestamp;
+
+}

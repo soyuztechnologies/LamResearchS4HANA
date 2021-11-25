@@ -1,0 +1,239 @@
+CLASS zcl_zlam_ab_first DEFINITION
+PUBLIC
+FINAL
+CREATE PUBLIC .
+
+PUBLIC SECTION.
+
+INTERFACES if_oo_adt_classrun .
+PROTECTED SECTION.
+PRIVATE SECTION.
+METHODS flush.
+METHODS fill_master_data.
+METHODS fill_transaction_data.
+ENDCLASS.
+
+CLASS zcl_zlam_ab_first IMPLEMENTATION.
+
+
+METHOD if_oo_adt_classrun~main.
+me->flush( ).
+me->fill_master_data( ).
+me->fill_transaction_data( ).
+out->write( 'Tables are ready amigo!' ).
+
+ENDMETHOD.
+
+METHOD flush.
+delete from: zlam_ab_bp, zlam_ab_orders, zlam_ab_order_i, zlam_ab_products.
+ENDMETHOD.
+
+METHOD fill_master_data.
+
+
+
+data: lt_bp type table of zlam_ab_bp,
+lt_prod type table of zlam_ab_products.
+
+
+
+append value #(
+bp_id = cl_uuid_factory=>create_system_uuid( )->create_uuid_c32( )
+bp_role = '01'
+company_name = 'SAP'
+street = 'Deterhopp alle'
+city = 'Walldorf'
+country = 'DE'
+region = 'EME'
+) to lt_bp.
+
+
+
+append value #(
+bp_id = cl_uuid_factory=>create_system_uuid( )->create_uuid_c32( )
+bp_role = '01'
+company_name = 'Asia High Tech'
+street = 'Otamachi'
+city = 'Tokyo'
+country = 'JP'
+region = 'APJ'
+) to lt_bp.
+
+
+
+
+append value #(
+bp_id = cl_uuid_factory=>create_system_uuid( )->create_uuid_c32( )
+bp_role = '01'
+company_name = 'AVANTEL'
+street = 'Basque de DCuraznos'
+city = 'Milan'
+country = 'IT'
+region = 'EME'
+) to lt_bp.
+
+
+
+append value #(
+bp_id = cl_uuid_factory=>create_system_uuid( )->create_uuid_c32( )
+bp_role = '01'
+company_name = 'Peer Computing'
+street = 'MG Road'
+city = 'Bangalore'
+country = 'IN'
+region = 'APJ'
+) to lt_bp.
+
+
+
+append value #(
+bp_id = cl_uuid_factory=>create_system_uuid( )->create_uuid_c32( )
+bp_role = '01'
+company_name = 'PicoBit'
+street = 'Fith Avenue'
+city = 'New York City'
+country = 'US'
+region = 'NA'
+)
+to lt_bp.
+append value #(
+bp_id = cl_uuid_factory=>create_system_uuid( )->create_uuid_c32( )
+bp_role = '01'
+company_name = 'TACUM'
+street = 'Victoria Street'
+city = 'Kolkatta'
+country = 'IN'
+region = 'APJ'
+)
+to lt_bp.
+append value #(
+bp_id = cl_uuid_factory=>create_system_uuid( )->create_uuid_c32( )
+bp_role = '01'
+company_name = 'Indian IT Trading Company'
+street = 'Nariman Point'
+city = 'Mumbai'
+country = 'IN'
+region = 'APJ'
+)
+to lt_bp.
+
+
+
+append value #(
+product_id = cl_uuid_factory=>create_system_uuid( )->create_uuid_c32( )
+name = 'Blaster Extreme'
+category = 'Speakers'
+price = 175
+currency_code = 'INR'
+discount = 3
+)
+to lt_prod.
+append value #(
+product_id = cl_uuid_factory=>create_system_uuid( )->create_uuid_c32( )
+name = 'Sound Booster'
+category = 'Speakers'
+price = 250
+currency_code = 'INR'
+discount = 2
+)
+to lt_prod.
+append value #(
+product_id = cl_uuid_factory=>create_system_uuid( )->create_uuid_c32( )
+name = 'Smart Office'
+category = 'Software'
+price = 154
+currency_code = 'INR'
+discount = 32
+)
+to lt_prod.
+append value #(
+product_id = cl_uuid_factory=>create_system_uuid( )->create_uuid_c32( )
+name = 'Smart Design'
+category = 'Software'
+price = 240
+currency_code = 'INR'
+discount = 12
+)
+to lt_prod.
+append value #(
+product_id = cl_uuid_factory=>create_system_uuid( )->create_uuid_c32( )
+name = 'Transcend Carry pocket'
+category = 'PCs'
+price = 140
+currency_code = 'INR'
+discount = 7
+)
+to lt_prod.
+append value #(
+product_id = cl_uuid_factory=>create_system_uuid( )->create_uuid_c32( )
+name = 'Gaming Monster Pro'
+category = 'PCs'
+price = 155
+currency_code = 'INR'
+discount = 8
+)
+to lt_prod.
+
+
+
+insert zlam_ab_bp from table @lt_bp.
+insert zlam_ab_products from table @lt_prod.
+
+
+
+ENDMETHOD.
+
+
+METHOD fill_transaction_data. data : o_rand type REF TO cl_abap_random_int,
+n type i,
+seed type i,
+lv_date type timestamp,
+lv_ord_id type zlam_ab_dte_id,
+lt_so type table of zlam_ab_orders,
+lt_so_i type table of zlam_ab_order_i. seed = cl_abap_random=>seed( ).
+cl_abap_random_int=>create(
+EXPORTING
+seed = seed
+min = 1
+max = 7
+RECEIVING
+prng = o_rand
+).
+get time stamp FIELD lv_date. select * from zlam_ab_bp into table @data(lt_bp).
+select * from zlam_ab_products into table @data(lt_prod). do 10 times.
+lv_ord_id = cl_uuid_factory=>create_system_uuid( )->create_uuid_c32( ).
+n = o_rand->get_next( ).
+read table lt_bp into data(ls_bp) INDEX n.
+append value #( order_id = lv_ord_id
+order_no = sy-index
+buyer = ls_bp-bp_id
+gross_amount = n * 100
+currency = 'INR'
+created_by = sy-uname
+created_on = lv_date
+changed_by = sy-uname
+changed_on = lv_date
+) to lt_so.
+do 2 times.
+read table lt_prod into data(ls_product) INDEX n.
+n = o_rand->get_next( ).
+append value #( order_id = lv_ord_id
+item_id = cl_uuid_factory=>create_system_uuid( )->create_uuid_c32( )
+product = ls_product-product_id
+qty = n
+unit = 'PC'
+gross_amount = n * ls_product-price
+currency = 'INR'
+created_by = sy-uname
+created_on = lv_date
+changed_by = sy-uname
+changed_on = lv_date
+) to lt_so_i.
+ENDDO.
+ENDDO. insert zlam_ab_orders from table @lt_so.
+insert zlam_ab_order_i from table @lt_so_i.
+ENDMETHOD.
+
+
+
+ENDCLASS.
