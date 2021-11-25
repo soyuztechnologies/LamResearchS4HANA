@@ -1,3 +1,6 @@
+===================AMDP==================
+
+
 CLASS zcl_lam_ab_amdp1 DEFINITION
 PUBLIC
 FINAL
@@ -30,8 +33,10 @@ ENDMETHOD.
 ENDCLASS.
 
 
+===================Call AMDP===================
 
-CLASS zcl_zlam_ab_first DEFINITION
+
+CLASS zcl_zlam_ab_sec DEFINITION
 PUBLIC
 FINAL
 CREATE PUBLIC .
@@ -43,11 +48,11 @@ PROTECTED SECTION.
 PRIVATE SECTION.
 ENDCLASS.
 
-CLASS zcl_zlam_ab_first IMPLEMENTATION.
+CLASS zcl_zlam_ab_sec IMPLEMENTATION.
 METHOD if_oo_adt_classrun~main.
-zcl_lam_ab_amdp=>getproductdata(
+zcl_lam_ab_amdp1=>getproductdata(
 EXPORTING
-p_id = '12D4E2B9810F1EEC939FD36B89F5F3B4'
+p_id = '0246E71B07DA1EEC93BF62F47D608EB0'
 IMPORTING
 ev_price = data(lv_price)
 ev_price_dis = data(lv_price_dis)
