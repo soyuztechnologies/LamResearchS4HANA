@@ -1,0 +1,68 @@
+@AbapCatalog.sqlViewName: 'ZATS00CUTRAVEL'
+@AbapCatalog.compiler.compareFilter: true
+@AbapCatalog.preserveKey: true
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Unmanaged Scenario Projection Layer - Consumption Travel'
+@UI.headerInfo:{
+    typeName: 'Travel',
+    typeNamePlural: 'Travels'
+}
+@Search.searchable: true
+define root view ZATS_00_C_U_TRAVEL
+  as select from /dmo/travel as Travel
+  association [1] to ZATS_00_I_U_agency   as _Agency   on $projection.AgencyId = _Agency.AgencyId
+  association [1] to ZATS_00_I_U_CUSTOMER as _Customer on $projection.CustomerId = _Customer.CustomerID
+  association [1] to I_Currency           as _Currency on $projection.CurrencyCode = _Currency.Currency
+{
+      //Travel
+      @UI.facet: [{ purpose: #STANDARD , type: #IDENTIFICATION_REFERENCE,
+      label: 'Details', position: 10 }]
+      @UI.selectionField: [{position: 10 }]
+      @UI.lineItem: [{position: 10, label: 'Travel No' }]
+      @UI.identification: [{position: 100 }]
+  key travel_id           as TravelId,
+      @UI.selectionField: [{position: 20 }]
+      @EndUserText.label: 'Agency No'
+      @UI.lineItem: [{position: 20 }]
+      @UI.identification: [{position: 10 }]
+      @ObjectModel.text.association: '_Agency'
+      @Consumption.valueHelpDefinition: [{ entity:{ name: 'ZATS_00_I_U_agency', element: 'AgencyId'} }]
+      @Search.defaultSearchElement: true
+      @Search.fuzzinessThreshold: 0.7
+      agency_id           as AgencyId,
+      @UI.selectionField: [{position: 30 }]
+      @EndUserText.label: 'Customer No'
+      @UI.lineItem: [{position: 30 }]
+      @UI.identification: [{position: 20 }]
+      @ObjectModel.text.association: '_Customer'
+      @Consumption.valueHelpDefinition: [{ entity:{ name: 'ZATS_00_I_U_CUSTOMER', element: 'CustomerID'} }]
+      @Search.defaultSearchElement: true
+      @Search.fuzzinessThreshold: 0.7
+      customer_id         as CustomerId,
+      @UI.identification: [{position: 30 }]
+      begin_date          as BeginDate,
+      @UI.identification: [{position: 40 }]
+      end_date            as EndDate,
+      @UI.identification: [{position: 50 }]
+      @Semantics.amount.currencyCode: 'CurrencyCode'
+      booking_fee         as BookingFee,
+      @UI.lineItem: [{position: 40 }]
+      @UI.identification: [{position: 60 }]
+      @Semantics.amount.currencyCode: 'CurrencyCode'
+      total_price         as TotalPrice,
+      @UI.lineItem: [{position: 50 }]
+      @UI.identification: [{position: 70 }]
+      @Search.defaultSearchElement: true
+      currency_code       as CurrencyCode,
+      @UI.lineItem: [{position: 60 }]
+      @UI.identification: [{position: 80 }]
+      description         as Description,
+      @UI.lineItem: [{position: 70 },{type: #FOR_ACTION, dataAction: 'set_booked', label: 'Anubhav Kills'}]
+      @UI.identification: [{position: 90 }]
+      status              as Status,
+      @UI.selectionField: [{position: 30 }]
+      _Customer.CountryCd as Country,
+      _Agency,
+      _Customer,
+      _Currency
+}
