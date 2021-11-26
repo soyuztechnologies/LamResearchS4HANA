@@ -1,0 +1,66 @@
+==================CDS Table Function===================
+
+
+@EndUserText.label: 'Calulate sales with discounts'
+define table function ZTF_LAM_AB_CALC_SALES
+with parameters
+@Environment.systemField: #CLIENT
+p_clnt : abap.clnt
+returns {
+client: abap.clnt;
+order_no: abap.int4;
+gross_amount: abap.int4;
+gross_amount_dis: abap.int4;
+
+}
+implemented by method zcl_lam_ab_amdp=>getorders;
+
+
+==================Class for Implementation===================
+
+
+CLASS zcl_lam_ab_amdp DEFINITION
+PUBLIC
+FINAL
+CREATE PUBLIC .
+
+PUBLIC SECTION.
+
+INTERFACES if_amdp_marker_hdb .
+
+
+CLASS-METHODS getorders for table FUNCTION ZTF_LAM_AB_CALC_SALES.
+
+PROTECTED SECTION.
+PRIVATE SECTION.
+ENDCLASS.
+
+CLASS zcl_lam_ab_amdp IMPLEMENTATION.
+
+
+METHOD getorders BY DATABASE FUNCTION FOR HDB LANGUAGE SQLSCRIPT OPTIONS READ-ONLY
+using zlam_ab_orders zlam_ab_order_i zlam_ab_products.
+
+
+
+lt_orders = select hdr.client, hdr.order_no, item.gross_amount,
+( item.gross_amount * ( 100 - prod.discount ) / 100 ) as amount_dis
+from zlam_ab_orders as hdr
+inner join zlam_ab_order_i as item
+on hdr.order_id = item.order_id
+inner join zlam_ab_products as prod
+on item.product = prod.product_id
+where hdr.client = :p_clnt;
+
+
+
+return select client, order_no, sum( gross_amount ) as gross_amount,
+sum( amount_dis ) as gross_amount_dis from :lt_orders
+group by client, order_no ;
+
+
+
+ENDMETHOD.
+
+ENDCLASS.
+
