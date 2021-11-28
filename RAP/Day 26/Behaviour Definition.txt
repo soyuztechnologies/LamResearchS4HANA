@@ -1,216 +1,34 @@
- unmanaged implementation in class zcl_ats_00_u_travel unique;
-//strict; //Comment this line in to enable strict mode. The strict mode is prerequisite to be future proof regarding syntax and to be able to release your BO.
+unmanaged implementation in class zbp_i_travel_u_ab unique;
+strict;
 
-define behavior for ZATS_00_C_U_TRAVEL //alias <alias_name>
-//late numbering
-//lock master
-//authorization master ( instance )
+define behavior for ZI_TRAVEL_U_AB alias Travel
+implementation in class zbp_i_travel_u_ab unique
+etag master LastChangedAt
+lock master
+authorization master ( global )
 //etag master <field_name>
 {
-  field(readonly) TravelId;
-  field (mandatory) AgencyId, CustomerId;
+  //field ( readonly ) TravelID;
+  field ( mandatory ) AgencyID, CustomerID, BeginDate, EndDate;
+
   create;
   update;
   delete;
-   action set_booked result[1] $self;
+
+  action ( features : instance ) set_status_booked result [1] $self;
+
+  mapping for /dmo/travel control /dmo/s_travel_intx
+  {
+    AgencyID      = agency_id;
+    BeginDate     = begin_date;
+    BookingFee    = booking_fee;
+    CurrencyCode  = currency_code;
+    CustomerID    = customer_id;
+    EndDate       = end_date;
+    LastChangedAt = lastchangedat;
+    Memo          = description;
+    Status        = status;
+    TotalPrice    = total_price;
+    TravelID      = travel_id;
+  }
 }
-
-
-
-----------Local Types/Class------------
-
-CLASS lhc_ZATS_00_C_U_TRAVEL DEFINITION INHERITING FROM cl_abap_behavior_handler.
-  PRIVATE SECTION.
-
-    METHODS create FOR MODIFY
-      IMPORTING entities FOR CREATE ZATS_00_C_U_TRAVEL.
-
-    METHODS delete FOR MODIFY
-      IMPORTING keys FOR DELETE ZATS_00_C_U_TRAVEL.
-
-    METHODS update FOR MODIFY
-      IMPORTING entities FOR UPDATE ZATS_00_C_U_TRAVEL.
-
-    METHODS read FOR READ
-      IMPORTING keys FOR READ ZATS_00_C_U_TRAVEL RESULT result.
-
-    METHODS set_booked for modify importing keys for action
-                ZATS_00_C_U_TRAVEL~set_booked result results.
-
-    methods map_data IMPORTING im_data type ZATS_00_C_U_TRAVEL
-                     returning value(r_bapi_data) type  /dmo/if_flight_legacy=>ts_travel_in.
-ENDCLASS.
-
-CLASS lhc_ZATS_00_C_U_TRAVEL IMPLEMENTATION.
-  METHOD map_data.
-    r_bapi_data-agency_id = im_data-AgencyId .
-    r_bapi_data-begin_date = im_data-BeginDate .
-    r_bapi_data-booking_fee = im_data-BookingFee .
-    r_bapi_data-currency_code = im_data-CurrencyCode .
-    r_bapi_data-customer_id = im_data-CustomerId .
-    r_bapi_data-description = im_data-Description .
-    r_bapi_data-end_date = im_data-EndDate .
-    r_bapi_data-status = im_data-Status .
-    r_bapi_data-total_price = im_data-TotalPrice .
-  ENDMETHOD.
-  METHOD create.
-    data: ls_travel_in type /dmo/if_flight_legacy=>ts_travel_in,
-          ls_travel_out type /dmo/travel,
-          lt_messages type /dmo/if_flight_legacy=>tt_message.
-    loop at entities assigning field-symbol(<fs_travel_create>).
-
-        ls_travel_in = zcl_demo_globe=>map_data( im_data = CORRESPONDING #( <fs_travel_create> ) ).
-*       Unmanaged scenario, all the logic is written already and we are
-*       Reusing the same
-        call function '/DMO/FLIGHT_TRAVEL_CREATE'
-          EXPORTING
-            is_travel             = ls_travel_in
-          IMPORTING
-             es_travel             = ls_travel_out
-             et_messages           = lt_messages
-          .
-        if lt_messages is INITIAL.
-*        Filling the transaction buffer also
-           insert value #( %cid = <fs_travel_create>-%cid
-                           travelid = ls_travel_out-travel_id
-                ) into table mapped-zats_00_c_u_travel.
-        else.
-           loop at lt_messages TRANSPORTING NO FIELDS where msgty = 'E' or msgty = 'A'.
-            insert value #( %cid = <fs_travel_create>-%cid ) into table failed-zats_00_c_u_travel.
-            return.
-           ENDLOOP.
-        endif.
-    endloop.
-
-  ENDMETHOD.
-
-  METHOD delete.
-
-    data: lt_messages type /dmo/if_flight_legacy=>tt_message,
-          lv_travel_id type /dmo/travel_id.
-
-    loop at keys assigning field-symbol(<to_be_deleted>).
-
-      lv_travel_id = <to_be_deleted>-TravelId.
-
-      call function '/DMO/FLIGHT_TRAVEL_DELETE'
-      EXPORTING
-        iv_travel_id = lv_travel_id
-      IMPORTING
-        et_messages  = lt_messages
-      .
-
-      loop at lt_messages TRANSPORTING NO FIELDS where msgty = 'E' or msgty = 'A'.
-
-        insert value #( %cid = <to_be_deleted>-%cid_ref travelid = <to_be_deleted>-TravelId )
-        into table failed-zats_00_c_u_travel.
-
-      endloop.
-
-    endloop.
-
-
-
-  ENDMETHOD.
-
-  METHOD update.
-
-    data: ls_travel_in type /dmo/if_flight_legacy=>ts_travel_in,
-          lt_message   type /dmo/if_flight_legacy=>tt_message,
-          ls_travel_x  type /dmo/if_flight_legacy=>ts_travel_inx.
-
-    loop at entities ASSIGNING FIELD-SYMBOL(<to_be_updated>).
-
-        ls_travel_in = map_data( im_data = CORRESPONDING #( <to_be_updated> ) ).
-        ls_travel_x-agency_id = xsdbool( <to_be_updated>-%control-AgencyId = cl_abap_behv=>flag_changed ).
-        ls_travel_x-begin_date = xsdbool( <to_be_updated>-%control-BeginDate = cl_abap_behv=>flag_changed ).
-        ls_travel_x-booking_fee = xsdbool( <to_be_updated>-%control-BookingFee = cl_abap_behv=>flag_changed ).
-        ls_travel_x-currency_code = xsdbool( <to_be_updated>-%control-CurrencyCode = cl_abap_behv=>flag_changed ).
-        ls_travel_x-customer_id = xsdbool( <to_be_updated>-%control-CustomerId = cl_abap_behv=>flag_changed ).
-        ls_travel_x-description = xsdbool( <to_be_updated>-%control-Description = cl_abap_behv=>flag_changed ).
-        ls_travel_x-end_date = xsdbool( <to_be_updated>-%control-EndDate = cl_abap_behv=>flag_changed ).
-        ls_travel_x-status = xsdbool( <to_be_updated>-%control-Status = cl_abap_behv=>flag_changed ).
-        ls_travel_x-total_price = xsdbool( <to_be_updated>-%control-TotalPrice = cl_abap_behv=>flag_changed ).
-        ls_travel_in-travel_id = <to_be_updated>-TravelId.
-        ls_travel_x-travel_id =  <to_be_updated>-TravelId.
-        call function '/DMO/FLIGHT_TRAVEL_UPDATE'
-          EXPORTING
-            is_travel              = ls_travel_in
-            is_travelx             = ls_travel_x
-*            it_booking             =
-*            it_bookingx            =
-*            it_booking_supplement  =
-*            it_booking_supplementx =
-          IMPORTING
-*            es_travel              =
-*            et_booking             =
-*            et_booking_supplement  =
-            et_messages            = lt_message
-          .
-        loop at lt_message TRANSPORTING NO FIELDS where
-        msgty = 'E' or msgty = 'A'.
-            insert value #( travelid = <to_be_updated>-TravelId
-                            %cid = <to_be_updated>-%cid_ref )
-                            into table failed-zats_00_c_u_travel.
-        endloop.
-
-    endloop.
-
-  ENDMETHOD.
-
-  METHOD read.
-  ENDMETHOD.
-
-  method set_booked.
-
-    data: lt_message type /dmo/if_flight_legacy=>tt_message,
-          LV_TRAVEL_ID type /dmo/travel_id.
-
-    loop at keys ASSIGNING FIELD-SYMBOL(<to_be_booked>).
-        LV_TRAVEL_ID = <to_be_booked>-TravelId.
-        call function '/DMO/FLIGHT_TRAVEL_SET_BOOKING'
-          EXPORTING
-            iv_travel_id = LV_TRAVEL_ID
-          IMPORTING
-            et_messages  = lt_message
-          .
-
-        loop at lt_message TRANSPORTING NO FIELDS WHERE msgty = 'E' or msgty = 'A'.
-            insert value #( %cid = <to_be_booked>-%cid_ref
-                            travelid = <to_be_booked>-TravelId
-                    ) into table failed-zats_00_c_u_travel.
-        ENDLOOP.
-    ENDLOOP.
-
-
-  ENDMETHOD.
-
-
-ENDCLASS.
-
-CLASS lsc_ZATS_00_C_U_TRAVEL DEFINITION INHERITING FROM cl_abap_behavior_saver.
-  PROTECTED SECTION.
-
-    METHODS check_before_save REDEFINITION.
-
-    METHODS finalize          REDEFINITION.
-
-    METHODS save              REDEFINITION.
-
-ENDCLASS.
-
-CLASS lsc_ZATS_00_C_U_TRAVEL IMPLEMENTATION.
-
-  METHOD check_before_save.
-
-  ENDMETHOD.
-
-  METHOD finalize.
-  ENDMETHOD.
-
-  METHOD save.
-    call function '/DMO/FLIGHT_TRAVEL_SAVE'
-      .
-  ENDMETHOD.
-
-ENDCLASS.
