@@ -1,0 +1,98 @@
+--------Global Class------
+
+CLASS zcl_ats_00_classpool DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
+
+ PUBLIC SECTION.
+    data: itab type table of string.
+    INTERFACES if_oo_adt_classrun.
+    METHODS reachtomars.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+CLASS ZCL_ATS_00_CLASSPOOL IMPLEMENTATION.
+    METHOD reachtomars.
+        data: lv_str type string.
+        data(lo_earth) = new zcl_earth( ).
+        data(lo_planet1) = new zcl_planet1( ).
+        data(lo_mars) = new zcl_mars( ).
+        "leave earth orbit
+        lo_earth->leave_orbit( IMPORTING r_value = lv_str ).
+        append lv_str to itab.
+        "enter in planet 1
+        lo_planet1->enter_orbit( IMPORTING r_value = lv_str ).
+        append lv_str to itab.
+        "leave plant1
+        lo_planet1->leave_orbit( IMPORTING r_value = lv_str ).
+        append lv_str to itab.
+        "enter mars orbit
+        lo_mars->enter_orbit( IMPORTING r_value = lv_str ).
+        append lv_str to itab.
+        "land on mars
+        lo_mars->land( IMPORTING r_value = lv_str ).
+        append lv_str to itab.
+    ENDMETHOD.
+
+
+    METHOD if_oo_adt_classrun~main.
+        me->reachtomars( ).
+        loop at itab into data(wa).
+        out->write(
+          EXPORTING
+            data   = wa
+*            name   =
+*          RECEIVING
+*            output =
+        ).
+        endloop.
+    ENDMETHOD.
+ENDCLASS.
+
+
+
+
+-------Local Types/Class------
+
+*"* use this source file for the definition and implementation of
+*"* local helper classes, interface definitions and type
+*"* declarations
+class zcl_earth DEFINITION.
+    public section.
+    methods leave_orbit EXPORTING value(r_value) type string.
+ENDCLASS.
+class zcl_earth IMPLEMENTATION.
+    method leave_orbit.
+        r_value = 'the settelite is leaving earth orbit'.
+    ENDMETHOD.
+endclass.
+
+class zcl_planet1 DEFINITION.
+    public section.
+    methods enter_orbit EXPORTING value(r_value) type string.
+    methods leave_orbit EXPORTING value(r_value) type string.
+ENDCLASS.
+class zcl_planet1 IMPLEMENTATION.
+    method enter_orbit.
+        r_value = 'the settelite is entering planet1 orbit'.
+    ENDMETHOD.
+    method leave_orbit.
+        r_value = 'the settelite is leaving planet1 orbit'.
+    ENDMETHOD.
+endclass.
+
+class zcl_mars DEFINITION.
+    public section.
+    methods enter_orbit EXPORTING value(r_value) type string.
+    methods land EXPORTING value(r_value) type string.
+ENDCLASS.
+class zcl_mars IMPLEMENTATION.
+    method enter_orbit.
+        r_value = 'the settelite is entering MARS orbit'.
+    ENDMETHOD.
+    method land.
+        r_value = 'the settelite is landing on MARS, we found water'.
+    ENDMETHOD.
+endclass.
+
