@@ -1,0 +1,32 @@
+unmanaged implementation in class zbp_i_lam_travel_u_ab unique;
+strict;
+
+
+
+define behavior for ZI_LAM_TRAVEL_U_AB alias Travel
+implementation in class zbp_i_lam_travel_u_ab unique
+//late numbering
+lock master
+authorization master ( global )
+//etag master <field_name>
+{
+create;
+update;
+delete;
+mapping for /dmo/travel control /dmo/s_travel_intx{
+AgencyId = agency_id;
+BeginDate = begin_date;
+BookingFee = booking_fee;
+CurrencyCode = currency_code;
+CustomerId = customer_id;
+EndDate = end_date;
+Lastchangedat = lastchangedat;
+Memo = description;
+Status = status;
+TotalPrice = total_price;
+TravelId = travel_id;
+}
+
+
+
+}

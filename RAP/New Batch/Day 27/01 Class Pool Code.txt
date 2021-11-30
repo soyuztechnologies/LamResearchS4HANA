@@ -1,0 +1,136 @@
+--------Global Class------
+
+CLASS zcl_lam_ab_classpool DEFINITION
+PUBLIC
+FINAL
+CREATE PUBLIC .
+
+
+
+PUBLIC SECTION.
+data: itab type table of string.
+INTERFACES if_oo_adt_classrun.
+METHODS reach_to_mars.
+
+
+
+PROTECTED SECTION.
+PRIVATE SECTION.
+ENDCLASS.
+
+
+
+
+
+CLASS zcl_lam_ab_classpool IMPLEMENTATION.
+METHOD if_oo_adt_classrun~main.
+
+
+
+me->reach_to_mars( ).
+loop at itab into data(wa).
+out->write(
+EXPORTING
+data = wa
+* name =
+* RECEIVING
+* output =
+).
+
+
+
+ENDLOOP.
+
+
+
+ENDMETHOD.
+
+
+
+METHOD reach_to_mars.
+
+
+
+data(lo_earth) = new zcl_earth( ).
+data(lo_other) = new zcl_other_planet( ).
+data(lo_mars) = new zcl_mars( ).
+
+
+
+append lo_earth->leave_orbit( ) to itab.
+append lo_other->enter_orbit_otp( ) to itab.
+append lo_other->leave_orbit_otp( ) to itab.
+append lo_mars->enter_mars( ) to itab.
+append lo_mars->start_exploration( ) to itab.
+
+
+
+
+
+ENDMETHOD.
+
+
+
+ENDCLASS.
+
+
+
+
+-------Local Types/Class------
+
+*"* use this source file for the definition and implementation of
+*"* local helper classes, interface definitions and type
+*"* declarations
+class zcl_earth DEFINITION.
+PUBLIC SECTION.
+METHODS leave_orbit returning value(r_value) type string.
+ENDCLASS.
+class zcl_earth IMPLEMENTATION.
+
+
+
+METHOD leave_orbit.
+r_value = 'Roger! we are leaving earth orbit'.
+ENDMETHOD.
+
+
+
+ENDCLASS.
+
+
+
+class zcl_other_planet DEFINITION.
+PUBLIC SECTION.
+METHODS enter_orbit_otp returning value(r_value) type string.
+METHODS leave_orbit_otp returning value(r_value) type string.
+ENDCLASS.
+class zcl_other_planet IMPLEMENTATION.
+
+
+
+METHOD enter_orbit_otp.
+r_value = 'Amigo! we entered in the orbit of transiant planet'.
+ENDMETHOD.
+METHOD leave_orbit_otp.
+r_value = 'Amigo! we left successfully for mission mars'.
+ENDMETHOD.
+ENDCLASS.
+
+
+
+class zcl_mars DEFINITION.
+PUBLIC SECTION.
+METHODS enter_mars returning value(r_value) type string.
+METHODS start_exploration returning value(r_value) type string.
+ENDCLASS.
+class zcl_mars IMPLEMENTATION.
+
+
+
+METHOD enter_mars.
+r_value = 'Congratulations! Mars Orbit injection Success'.
+ENDMETHOD.
+METHOD start_exploration.
+r_value = 'Sending images and data from mast, LIVE feed 2365ms'.
+ENDMETHOD.
+ENDCLASS.
