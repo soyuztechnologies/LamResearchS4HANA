@@ -8,8 +8,10 @@ implementation in class zbp_i_lam_travel_u_ab unique
 //late numbering
 lock master
 authorization master ( global )
-//etag master <field_name>
+etag master Lastchangedat
 {
+field ( readonly ) TravelId;
+field ( mandatory ) AgencyId, CustomerId, BeginDate, EndDate;
 create;
 update;
 delete;

@@ -1,0 +1,495 @@
+CLASS zbp_i_lam_travel_u_ab DEFINITION PUBLIC ABSTRACT FINAL FOR BEHAVIOR OF zi_lam_travel_u_ab.
+ENDCLASS.
+
+CLASS zbp_i_lam_travel_u_ab IMPLEMENTATION.
+ENDCLASS.
+
+--------------------------------------Local Class-----------------------------------
+
+CLASS lhc_Travel DEFINITION INHERITING FROM cl_abap_behavior_handler.
+  PRIVATE SECTION.
+    TYPES : tt_travel_failed   TYPE TABLE FOR FAILED zi_lam_travel_u_ab,
+            tt_travel_reported TYPE TABLE FOR REPORTED zi_lam_travel_u_ab.
+
+    METHODS get_global_authorizations FOR GLOBAL AUTHORIZATION
+      IMPORTING REQUEST requested_authorizations FOR Travel RESULT result.
+
+    METHODS create FOR MODIFY
+      IMPORTING entities FOR CREATE Travel.
+
+    METHODS update FOR MODIFY
+      IMPORTING entities FOR UPDATE Travel.
+
+    METHODS delete FOR MODIFY
+      IMPORTING keys FOR DELETE Travel.
+
+    METHODS read FOR READ
+      IMPORTING keys FOR READ Travel RESULT result.
+
+    METHODS lock FOR LOCK
+      IMPORTING keys FOR LOCK Travel.
+
+    METHODS map_message
+      IMPORTING
+        cid          TYPE string OPTIONAL
+        travel_id    TYPE /dmo/travel_id OPTIONAL
+        messages     TYPE /dmo/t_message
+      EXPORTING
+        failed_added TYPE abap_bool
+      CHANGING
+        failed       TYPE tt_travel_failed
+        reported     TYPE tt_travel_reported.
+
+ENDCLASS.
+
+CLASS lhc_Travel IMPLEMENTATION.
+
+  METHOD get_global_authorizations.
+  ENDMETHOD.
+
+  METHOD create.
+
+
+
+    DATA : messages   TYPE /dmo/t_message,
+           travel_in  TYPE /dmo/travel,
+           travel_out TYPE /dmo/travel.
+
+
+
+    "Step 1: we will get all the record values which needs to be created
+    " from fiori element in 'entities' which is a default input parameter
+    LOOP AT entities ASSIGNING FIELD-SYMBOL(<travel_create>).
+      "Map the data from entities to input travel structure
+      travel_in = CORRESPONDING #( <travel_create> MAPPING FROM ENTITY USING CONTROL ).
+
+
+
+      "Call the existing ABAP code in company to create BO , e.g. Travel, SO, PO etc.
+
+
+
+      /dmo/cl_flight_legacy=>get_instance( )->create_travel(
+      EXPORTING
+      is_travel = CORRESPONDING /dmo/s_travel_in( travel_in )
+      IMPORTING
+      es_travel = travel_out
+      et_messages = DATA(lt_messages)
+      ).
+
+
+
+      "If there is an error while creating travel request the lt_message will have an entry
+      "We first convert it to a internal table
+      /dmo/cl_flight_legacy=>get_instance( )->convert_messages(
+      EXPORTING
+      it_messages = lt_messages
+      IMPORTING
+      et_messages = messages
+      ).
+
+
+
+      "We will check and map reporting errors to RAP
+      "lv_failed will confirm if there was atleast one error
+      "Terminate the flow and save sequence wont be executed
+      map_message(
+      EXPORTING
+      cid = <travel_create>-%cid
+      messages = messages
+      IMPORTING
+      failed_added = DATA(lv_failed)
+      CHANGING
+      failed = failed-travel
+      reported = reported-travel
+      ).
+
+
+
+      "If there is no issue, then we inform RAP to proceed and call SAVE SEQUENCE
+      "We also map our Temporary key %cid with actual key TRAVEL_ID
+      IF lv_failed = abap_false.
+
+
+
+        INSERT VALUE #( %cid = <travel_create>-%cid
+        travelid = travel_out-travel_id
+        ) INTO TABLE mapped-travel.
+
+
+
+      ENDIF.
+
+
+
+    ENDLOOP.
+
+
+
+
+  ENDMETHOD.
+
+  METHOD update.
+    DATA : messages  TYPE /dmo/t_message,
+           travel_in TYPE /dmo/travel,
+           travelx   TYPE /dmo/s_travel_inx.
+
+
+
+    LOOP AT entities ASSIGNING FIELD-SYMBOL(<travel_update>).
+
+
+
+      travel_in = CORRESPONDING #( <travel_update> MAPPING FROM ENTITY ).
+      travelx-_intx = CORRESPONDING #( <travel_update> MAPPING FROM ENTITY ).
+      travelx-travel_id = <travel_update>-travelid.
+
+
+
+      /dmo/cl_flight_legacy=>get_instance( )->update_travel(
+      EXPORTING
+      is_travel = CORRESPONDING /dmo/s_travel_in( travel_in )
+      is_travelx = travelx
+      IMPORTING
+      et_messages = DATA(lt_messages)
+      ).
+
+
+
+      "If there is an error while creating travel request the lt_message will have an entry
+      "We first convert it to a internal table
+      /dmo/cl_flight_legacy=>get_instance( )->convert_messages(
+      EXPORTING
+      it_messages = lt_messages
+      IMPORTING
+      et_messages = messages
+      ).
+
+
+
+      "We will check and map reporting errors to RAP
+      "lv_failed will confirm if there was atleast one error
+      "Terminate the flow and save sequence wont be executed
+      map_message(
+      EXPORTING
+      cid = <travel_update>-%cid_ref
+      messages = messages
+      IMPORTING
+      failed_added = DATA(lv_failed)
+      CHANGING
+      failed = failed-travel
+      reported = reported-travel
+      ).
+
+
+
+      "If there is no issue, then we inform RAP to proceed and call SAVE SEQUENCE
+      "We also map our Temporary key %cid with actual key TRAVEL_ID
+      IF lv_failed = abap_false.
+
+
+
+        INSERT VALUE #( %cid = <travel_update>-%cid_ref
+        travelid = <travel_update>-%cid_ref
+        ) INTO TABLE mapped-travel.
+
+
+
+      ENDIF.
+
+
+
+
+
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD delete.
+
+    DATA: messages TYPE /dmo/t_message.
+
+
+
+    LOOP AT keys ASSIGNING FIELD-SYMBOL(<travel_delete>).
+
+
+
+      /dmo/cl_flight_legacy=>get_instance( )->delete_travel(
+      EXPORTING
+      iv_travel_id = <travel_delete>-travelid
+      IMPORTING
+      et_messages = DATA(lt_messages)
+      ).
+
+
+
+      "If there is an error while creating travel request the lt_message will have an entry
+      "We first convert it to a internal table
+      /dmo/cl_flight_legacy=>get_instance( )->convert_messages(
+      EXPORTING
+      it_messages = lt_messages
+      IMPORTING
+      et_messages = messages
+      ).
+
+
+
+      "We will check and map reporting errors to RAP
+      "lv_failed will confirm if there was atleast one error
+      "Terminate the flow and save sequence wont be executed
+      map_message(
+      EXPORTING
+      cid = <travel_delete>-%cid_ref
+      messages = messages
+      IMPORTING
+      failed_added = DATA(lv_failed)
+      CHANGING
+      failed = failed-travel
+      reported = reported-travel
+      ).
+
+
+
+      "If there is no issue, then we inform RAP to proceed and call SAVE SEQUENCE
+      "We also map our Temporary key %cid with actual key TRAVEL_ID
+      IF lv_failed = abap_false.
+
+
+
+        INSERT VALUE #( %cid = <travel_delete>-%cid_ref
+
+
+
+        ) INTO TABLE mapped-travel.
+
+
+
+      ENDIF.
+
+
+
+
+
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD read.
+    DATA:
+      travel_out TYPE /dmo/travel,
+      messages   TYPE /dmo/t_message.
+
+
+
+    LOOP AT keys ASSIGNING FIELD-SYMBOL(<travel_to_read>) GROUP BY <travel_to_read>-%tky.
+
+
+
+      /dmo/cl_flight_legacy=>get_instance( )->get_travel(
+      EXPORTING
+      iv_travel_id = <travel_to_read>-TravelId
+      iv_include_buffer = abap_false
+      IMPORTING
+      es_travel = travel_out
+      et_messages = DATA(lt_messages)
+      ).
+
+
+
+      "If there is an error while creating travel request the lt_message will have an entry
+      "We first convert it to a internal table
+      /dmo/cl_flight_legacy=>get_instance( )->convert_messages(
+      EXPORTING
+      it_messages = lt_messages
+      IMPORTING
+      et_messages = messages
+      ).
+
+
+
+      "We will check and map reporting errors to RAP
+      "lv_failed will confirm if there was atleast one error
+      "Terminate the flow and save sequence wont be executed
+      map_message(
+      EXPORTING
+      travel_id = <travel_to_read>-TravelId
+      messages = messages
+      IMPORTING
+      failed_added = DATA(lv_failed)
+      CHANGING
+      failed = failed-travel
+      reported = reported-travel
+      ).
+
+
+
+      "If there is no issue, then we inform RAP to proceed and call SAVE SEQUENCE
+      "We also map our Temporary key %cid with actual key TRAVEL_ID
+      IF lv_failed = abap_false.
+
+
+
+        INSERT CORRESPONDING #( travel_out MAPPING TO ENTITY
+
+
+
+        ) INTO TABLE result.
+
+
+
+      ENDIF.
+
+
+
+
+
+    ENDLOOP.
+
+
+  ENDMETHOD.
+
+  METHOD lock.
+    TRY.
+        "Instantiate lock object
+        DATA(lock) = cl_abap_lock_object_factory=>get_instance( iv_name = '/DMO/ETRAVEL' ).
+      CATCH cx_abap_lock_failure INTO DATA(exception).
+        RAISE SHORTDUMP exception.
+    ENDTRY.
+
+
+
+    LOOP AT keys ASSIGNING FIELD-SYMBOL(<travel>).
+      TRY.
+          "enqueue travel instance
+          lock->enqueue(
+          it_parameter = VALUE #( ( name = 'TRAVEL_ID' value = REF #( <travel>-travelid ) ) )
+          ).
+          "if foreign lock exists
+        CATCH cx_abap_foreign_lock INTO DATA(foreign_lock).
+          map_message(
+          EXPORTING
+          travel_id = <travel>-TravelID
+          messages = VALUE #( (
+          msgid = '/DMO/CM_FLIGHT_LEGAC'
+          msgty = 'E'
+          msgno = '032'
+          msgv1 = <travel>-travelid
+          msgv2 = foreign_lock->user_name )
+          )
+          CHANGING
+          failed = failed-travel
+          reported = reported-travel
+          ).
+
+
+
+        CATCH cx_abap_lock_failure INTO exception.
+          RAISE SHORTDUMP exception.
+      ENDTRY.
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD map_message.
+
+
+
+    failed_added = abap_false.
+
+
+
+    LOOP AT messages INTO DATA(ls_message).
+
+
+
+      IF ls_message-msgty = 'E' OR ls_message-msgty = 'A'.
+        APPEND VALUE #(
+        %cid = cid
+        travelid = travel_id
+        %fail-cause = /dmo/cl_travel_auxiliary=>get_cause_from_message(
+        EXPORTING
+        msgid = ls_message-msgid
+        msgno = ls_message-msgno
+        )
+        ) TO failed.
+
+
+
+        failed_added = abap_true.
+      ENDIF.
+
+
+
+      APPEND VALUE #(
+      %msg = new_message(
+      id = ls_message-msgid
+      number = ls_message-msgno
+      severity = if_abap_behv_message=>severity-error
+      v1 = ls_message-msgv1
+      v2 = ls_message-msgv2
+      v3 = ls_message-msgv3
+      v4 = ls_message-msgv4
+      )
+      travelid = travel_id
+      %cid = cid
+      )
+      TO reported.
+
+
+
+    ENDLOOP.
+
+
+
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+CLASS lsc_ZI_LAM_TRAVEL_U_AB DEFINITION INHERITING FROM cl_abap_behavior_saver.
+  PROTECTED SECTION.
+
+    METHODS finalize REDEFINITION.
+
+    METHODS check_before_save REDEFINITION.
+
+    METHODS save REDEFINITION.
+
+    METHODS cleanup REDEFINITION.
+
+    METHODS cleanup_finalize REDEFINITION.
+
+ENDCLASS.
+
+CLASS lsc_ZI_LAM_TRAVEL_U_AB IMPLEMENTATION.
+
+  METHOD finalize.
+  ENDMETHOD.
+
+  METHOD check_before_save.
+  ENDMETHOD.
+
+  METHOD save.
+
+
+
+    /dmo/cl_flight_legacy=>get_instance( )->save( ).
+
+
+
+  ENDMETHOD.
+
+
+
+  METHOD cleanup.
+
+
+
+    /dmo/cl_flight_legacy=>get_instance( )->initialize( ).
+
+
+
+  ENDMETHOD.
+
+  METHOD cleanup_finalize.
+  ENDMETHOD.
+
+ENDCLASS.
