@@ -1,0 +1,30 @@
+@AbapCatalog.viewEnhancementCategory: [#NONE]
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Booking projection'
+@Metadata.ignorePropagatedAnnotations: true
+@ObjectModel.usageType:{
+serviceQuality: #X,
+sizeCategory: #S,
+dataClass: #MIXED
+}
+@Metadata.allowExtensions: true
+define view entity ZC_BOOKING_PROCESSOR_M_LAMAB
+  as projection on ZI_LAM_BOOKING_M_AB
+{
+  key TravelId,
+  key BookingId,
+      BookingDate,
+      CustomerId,
+      CarrierId,
+      ConnectionId,
+      FlightDate,
+      @Semantics.amount.currencyCode: 'CurrencyCode'
+      FlightPrice,
+      CurrencyCode,
+      Lastchangedat,
+      /* Associations */
+      _Carrier,
+      _Connection,
+      _Customer,
+      _Travel : redirected to parent ZC_TRAVEL_PROCESSOR_M_LAMAB
+}

@@ -1,0 +1,65 @@
+@Metadata.layer: #CORE
+annotate view ZC_TRAVEL_PROCESSOR_M_LAMAB with
+{
+  @UI.facet: [{
+  position: 10,
+  id: 'Travel',
+  purpose: #STANDARD,
+  label: 'More Info',
+  type: #IDENTIFICATION_REFERENCE
+  },{
+  purpose: #STANDARD,
+  id: 'Booking',
+  type: #LINEITEM_REFERENCE,
+  label: 'Bookings',
+  position: 20,
+  targetElement: '_Bookings'
+  }]
+
+  @UI: {
+  selectionField: [{position: 10 }],
+  lineItem: [{position: 10 }],
+  identification: [{position: 10 }]
+  }
+  TravelId;
+  @UI: {
+  selectionField: [{position: 20 }],
+  lineItem: [{position: 20 }],
+  identification: [{position: 20 }]
+  }
+  AgencyId;
+  @UI: {
+  selectionField: [{position: 30 }],
+  lineItem: [{position: 30 }],
+  identification: [{position: 30 }]
+  }
+  CustomerId;
+  @UI: {
+  lineItem: [{position: 40 }],
+  identification: [{position: 40 }]
+  }
+  BeginDate;
+  @UI: {
+  lineItem: [{position: 50 }],
+  identification: [{position: 50 }]
+  }
+  EndDate;
+  @UI: {
+  identification: [{position: 60 }]
+  }
+  BookingFee;
+  @UI: {
+  identification: [{position: 70 }]
+  }
+  TotalPrice;
+  @UI: {
+  identification: [{position: 80 }]
+  }
+  Memo;
+  @UI: {
+  identification: [{position: 90 }]
+  }
+  Status;
+
+
+}

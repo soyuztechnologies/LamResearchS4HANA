@@ -1,0 +1,174 @@
+CLASS zi_eml_ab DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+    data: lv_type type c value 'A'.
+    INTERFACES if_oo_adt_classrun.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+
+CLASS zi_eml_ab IMPLEMENTATION.
+  METHOD if_oo_adt_classrun~main.
+
+
+     case lv_type.
+        when 'R'.
+
+            read ENTITIES of ZI_TRAVEL_U_AB
+                entity Travel
+                ALL FIELDS WITH
+                value #( ( TravelId = '00000009' ) )
+                result data(lt_found_records)
+                FAILED   DATA(ls_failed)
+                REPORTED DATA(ls_reported).
+
+            if lt_found_records is NOT INITIAL.
+                out->write(
+                  EXPORTING
+                    data   = lt_found_records
+*                    name   =
+*                  RECEIVING
+*                    output =
+                ).
+            else.
+                out->get(
+                  EXPORTING
+                    data   =  ls_failed
+*                    name   =
+                  RECEIVING
+                    output = data(lt_failed)
+                ).
+            ENDIF.
+
+        when 'C'.
+
+                DATA(lv_description)  = 'Intro to EML'.
+                DATA(lv_agency_id)    = '070048'.
+                DATA(lv_my_agency_id) = '0700999'.
+
+                " Get valid customer ID
+                SELECT SINGLE customer_id FROM /dmo/customer INTO @data(gv_customer_id).
+
+                " Create a new travel > booking > booking supplement
+                MODIFY ENTITIES OF ZI_TRAVEL_U_AB
+                  ENTITY Travel
+                         CREATE FIELDS ( agencyid customerid begindate enddate memo status )
+                                WITH VALUE #( ( %cid       = 'CID_100'    " Preliminary ID for new travel instance
+                                                agencyid   = lv_agency_id
+                                                customerid = gv_customer_id
+                                                begindate  = cl_abap_context_info=>get_system_date( )
+                                                enddate    = cl_abap_context_info=>get_system_date(  ) + 30
+                                                memo = lv_description
+                                                status     = CONV #( /dmo/if_flight_legacy=>travel_status-new ) ) )
+                        " Update data of travel instance
+                         UPDATE FIELDS ( agencyid memo status )
+                                WITH VALUE #( ( %cid_ref   = 'CID_100'    " Refers to travel instance
+                                                agencyid   = lv_my_agency_id
+                                                memo       = 'Changed Agency and Status!'
+                                                status     = CONV #( /dmo/if_flight_legacy=>travel_status-planned ) ) )
+                   MAPPED   DATA(ls_mapped)
+                   FAILED   ls_failed
+                   REPORTED ls_reported.
+
+                   COMMIT ENTITIES.
+
+                   READ ENTITIES OF ZI_TRAVEL_U_AB
+                      ENTITY travel
+                      FIELDS ( agencyid memo )
+                        WITH VALUE #( ( travelid = ls_mapped-travel[ 1 ]-travelid ) )
+                        RESULT DATA(lt_received_travel_data)
+                  REPORTED ls_reported
+                  FAILED   ls_failed.
+
+                out->write( lt_received_travel_data ).
+
+
+                " Check criteria of success
+                IF sy-subrc = 0.
+                  out->write( 'Successful COMMIT!' ).
+                ELSE.
+                  out->write( 'COMMIT failed!' ).
+                ENDIF.
+
+
+
+    when 'U'.
+
+*            Additionally data type can be created as below
+*            data: it_instance_u type table for update ZI_TRAVEL_U_AB.
+
+            MODIFY ENTITY ZI_TRAVEL_U_AB
+                    UPDATE FIELDS ( agencyid memo ) WITH
+                            VALUE #( (
+                              travelid          = '00000009'
+                              agencyid          = '070017'
+                              memo              = 'Fantastic 4' ) )
+                    FAILED   ls_failed
+                    REPORTED ls_reported.
+
+            if ls_failed is not INITIAL.
+                out->write(
+                  EXPORTING
+                    data   = ls_failed
+                ).
+
+            ENDIF.
+            COMMIT ENTITIES.
+
+    when 'D'.
+
+*        data: it_instance_d type table for delete ZI_TRAVEL_U_AB.
+
+        MODIFY ENTITIES OF ZI_TRAVEL_U_AB
+              " Delete travel and all child instances (booking, booking supplements)
+              ENTITY travel
+                   DELETE FROM VALUE #( ( TRAVELID  = '00000009' ) )
+              REPORTED ls_reported
+              FAILED   ls_failed.
+
+
+        commit ENTITIES.
+        if ls_failed is not INITIAL.
+            out->write(
+              EXPORTING
+                data   = ls_failed
+*                name   =
+*              RECEIVING
+*                output =
+            ).
+
+        ENDIF.
+    when 'A'.
+
+*        data: it_instance_d type table for delete ZI_TRAVEL_U_AB.
+
+        MODIFY ENTITY ZI_TRAVEL_U_AB
+           EXECUTE set_status_booked
+                FROM VALUE #( ( TRAVELID = '00000009' ) )
+                RESULT DATA(lt_set_status_booked)
+           FAILED   ls_failed
+           REPORTED ls_reported.
+
+        commit ENTITIES.
+        if ls_failed is not INITIAL.
+            out->write(
+              EXPORTING
+                data   = ls_failed
+*                name   =
+*              RECEIVING
+*                output =
+            ).
+
+        ENDIF.
+    endcase.
+
+
+
+  ENDMETHOD.
+
+ENDCLASS.

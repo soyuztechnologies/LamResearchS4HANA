@@ -1,0 +1,35 @@
+@AbapCatalog.viewEnhancementCategory: [#NONE]
+@AccessControl.authorizationCheck: #CHECK
+@EndUserText.label: 'Booking Scenario'
+@Metadata.ignorePropagatedAnnotations: true
+@ObjectModel.usageType:{
+serviceQuality: #X,
+sizeCategory: #S,
+dataClass: #MIXED
+}
+define view entity ZI_LAM_BOOKING_M_AB
+  as select from /dmo/booking as Booking
+  association        to parent ZI_LAM_TRAVEL_M_AB as _Travel     on  $projection.TravelId = _Travel.TravelId
+  association [1..1] to ZI_LAM_CUSTOMER_U_AB      as _Customer   on  $projection.CustomerId = _Customer.CustomerId
+  association [1..1] to /DMO/I_Carrier            as _Carrier    on  $projection.CarrierId = _Carrier.AirlineID
+  association [1..1] to /DMO/I_Connection         as _Connection on  $projection.CarrierId    = _Connection.AirlineID
+                                                                 and $projection.ConnectionId = _Connection.ConnectionID
+{
+  key travel_id     as TravelId,
+  key booking_id    as BookingId,
+      booking_date  as BookingDate,
+      customer_id   as CustomerId,
+      carrier_id    as CarrierId,
+      connection_id as ConnectionId,
+      flight_date   as FlightDate,
+      @Semantics.amount.currencyCode: 'CurrencyCode'
+      flight_price  as FlightPrice,
+      currency_code as CurrencyCode,
+      --bring etag from parent
+      @UI.hidden: true
+      _Travel.Lastchangedat,
+      _Customer,
+      _Carrier,
+      _Connection,
+      _Travel
+}
