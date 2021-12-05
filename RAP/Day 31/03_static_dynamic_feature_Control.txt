@@ -1,0 +1,43 @@
+1. Dynamic and Static Feature Control at Travel Level
+
+    // administrative fields: read only
+  field ( readonly ) lastchangedat, lastchangedby, createdat, createdby;
+
+  // mandatory fields that are required to create a travel
+  field ( mandatory ) agencyid, status, bookingfee, currencycode;
+
+  // dynamic field control
+  field (features : instance ) travelid;
+
+
+2. Dynamic and Static Feature Control at Booking level
+
+    // static field control
+  field ( mandatory ) carrierid, connectionid, flightdate;
+
+  // dynamic field control
+  field (features : instance ) bookingid, bookingdate, customerid;
+
+
+3. Instance feature control at Booking level
+
+METHOD get_instance_features.
+    READ ENTITIES OF ZI_Travel_M_AB IN LOCAL MODE
+           ENTITY Booking
+             FIELDS ( carrierid )
+             WITH CORRESPONDING #( keys )
+           RESULT DATA(lt_booking_result)
+           FAILED failed.
+
+
+
+    result = VALUE #( FOR ls_booking IN lt_booking_result
+                       (  %tky                      = ls_booking-%tky
+                         %field-bookingid   = if_abap_behv=>fc-f-read_only
+                         %field-bookingdate = if_abap_behv=>fc-f-read_only
+                         %field-customerid  = COND #( WHEN ls_booking-carrierid = 'AA'
+                                                          THEN if_abap_behv=>fc-f-read_only
+                                                          ELSE if_abap_behv=>fc-f-unrestricted  )
+                      ) ).
+
+  ENDMETHOD.

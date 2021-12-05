@@ -1,0 +1,92 @@
+1. In the behavior definition of Root
+
+action createTravelByTemplate result [1] $self;
+
+2. Expose the Behavior Definition
+
+use action createTravelByTemplate;
+
+3. Fiori App Annotation
+
+@UI: {
+          lineItem:       [ { position: 50, importance: #HIGH },
+                            { type: #FOR_ACTION, dataAction: 'createTravelByTemplate', 
+                              label: 'Create Travel by Template' } ],
+          identification: [ { position: 45, label: 'Status [O(Open)|A(Accepted)|X(Canceled)]' } ] }
+      Status     as TravelStatus,
+
+4. Implementation code for Copy and Create new Travel Request
+
+METHOD createTravelByTemplate.
+    SELECT MAX( travel_id ) FROM /dmo/travel INTO @DATA(lv_travel_id). "#EC CI_NOWHERE
+
+    READ ENTITIES OF zi_travel_m_ab IN LOCAL MODE
+      ENTITY travel
+         FIELDS ( travelid
+                  agencyid
+                  customerid
+                  bookingfee
+                  totalprice
+                  currencycode )
+           WITH CORRESPONDING #( keys )
+         RESULT    DATA(lt_read_result)
+         FAILED    failed
+         REPORTED  reported.
+
+    DATA(lv_today) = cl_abap_context_info=>get_system_date( ).
+
+    DATA lt_create TYPE TABLE FOR CREATE ZI_Travel_M_ab\\travel.
+
+    lt_create = VALUE #( FOR row IN  lt_read_result INDEX INTO idx
+
+                             ( %cid = row-travelid
+                               travelid      = lv_travel_id + idx
+                               agencyid      = row-agencyid
+                               customerid    = row-customerid
+                               begindate     = lv_today
+                               enddate       = lv_today + 30
+                               bookingfee    = row-bookingfee
+                               totalprice    = row-totalprice
+                               currencycode  = row-currencycode
+                               memo    = 'Enter your comments here'
+                               status = 'O' ) ). " Open
+
+
+    MODIFY ENTITIES OF zi_travel_m_ab IN LOCAL MODE
+        ENTITY travel
+           CREATE FIELDS (    travelid
+                              agencyid
+                              customerid
+                              begindate
+                              enddate
+                              bookingfee
+                              totalprice
+                              currencycode
+                              memo
+                              status )
+           WITH lt_create
+         MAPPED   mapped
+         FAILED   DATA(failed_modify)
+         REPORTED DATA(reported_modify).
+
+    failed-travel   = CORRESPONDING #( BASE ( failed-travel )   failed_modify-travel   MAPPING travelid = %cid ).
+    reported-travel = CORRESPONDING #( BASE ( reported-travel ) reported_modify-travel MAPPING travelid = %cid ).
+
+
+    READ ENTITIES OF zi_travel_m_ab IN LOCAL MODE
+      ENTITY travel
+        ALL FIELDS WITH
+        CORRESPONDING #( mapped-travel )
+    RESULT DATA(lt_read_created).
+
+    result = VALUE #( FOR key IN  mapped-travel  INDEX INTO idx
+                               ( %cid_ref = keys[ KEY entity %key = key-%cid ]-%cid_ref
+                                 %key     = key-%cid
+                                 %param-%tky   = key-%tky ) ) .
+
+    result = CORRESPONDING #( result FROM lt_read_created USING KEY entity  %key = %param-%key MAPPING %param = %data EXCEPT * ).
+
+
+
+  ENDMETHOD.
+

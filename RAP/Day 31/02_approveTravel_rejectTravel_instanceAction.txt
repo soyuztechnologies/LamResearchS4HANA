@@ -1,0 +1,67 @@
+1. In the behavior definition of Root
+
+  // dynamic action control
+  action  ( features: instance ) acceptTravel result [1] $self;
+  action  ( features: instance ) rejectTravel result [1] $self;
+
+2. Implementing the Feature Control and Action
+
+  METHOD acceptTravel.
+    " Modify in local mode
+    MODIFY ENTITIES OF zi_travel_m_ab IN LOCAL MODE
+        ENTITY Travel
+          UPDATE FIELDS (  status )
+          WITH VALUE #( FOR key IN keys ( %tky          = key-%tky
+                                          status = 'A' ) )
+        FAILED failed
+        REPORTED reported.
+
+            "Read changed data for action result
+            READ ENTITIES OF zi_travel_m_ab IN LOCAL MODE
+              ENTITY Travel
+                ALL FIELDS WITH
+                CORRESPONDING #( keys )
+              RESULT DATA(lt_travel).
+
+            result = VALUE #( FOR travel IN lt_travel ( %tky   = travel-%tky
+                                                        %param = travel ) ).
+  ENDMETHOD.
+
+  METHOD rejectTravel.
+    " Modify in local mode
+    MODIFY ENTITIES OF zi_travel_m_ab IN LOCAL MODE
+     ENTITY Travel
+       UPDATE FIELDS (  status )
+       WITH VALUE #( FOR key IN keys ( %tky          = key-%tky
+                                       status = 'X' ) )
+    FAILED failed
+    REPORTED reported.
+
+        "Read changed data for action result
+        READ ENTITIES OF zi_travel_m_ab IN LOCAL MODE
+          ENTITY Travel
+            ALL FIELDS WITH
+            CORRESPONDING #( keys )
+          RESULT DATA(lt_travel).
+
+        result = VALUE #( FOR travel IN lt_travel ( %tky   = travel-%tky
+                                                    %param = travel ) ).
+  ENDMETHOD.
+
+  METHOD get_instance_features.
+      READ ENTITIES OF zi_travel_m_ab IN LOCAL MODE
+        ENTITY Travel
+        FIELDS ( status )
+        WITH CORRESPONDING #( keys )
+        RESULT DATA(lt_travel_result)
+        FAILED failed.
+
+        result = VALUE #( FOR ls_travel IN lt_travel_result
+                           (         %tky                   = ls_travel-%tky
+                             %field-travelid               = if_abap_behv=>fc-f-read_only
+                             %features-%action-rejectTravel = COND #( WHEN ls_travel-status = 'X'
+                                                                        THEN if_abap_behv=>fc-o-disabled ELSE if_abap_behv=>fc-o-enabled  )
+                             %features-%action-acceptTravel = COND #( WHEN ls_travel-status = 'A'
+                                                                        THEN if_abap_behv=>fc-o-disabled ELSE if_abap_behv=>fc-o-enabled  )
+                          ) ).
+  ENDMETHOD.
