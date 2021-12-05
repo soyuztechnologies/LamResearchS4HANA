@@ -1,0 +1,19 @@
+projection;
+//strict; //Comment this line in to enable strict mode. The strict mode is prerequisite to be future proof regarding syntax and to be able to release your BO.
+
+define behavior for ZC_TRAVEL_APPROVER_M_00 alias Travel
+{
+  field (readonly) TravelID,  CustomerID,  BeginDate, EndDate,
+                    TotalPrice;
+  use update;
+   use action acceptTravel;
+  use action rejectTravel;
+//  use association _Booking { create; }
+}
+
+define behavior for ZC_BOOKING_APPROVER_M_00 alias Booking
+{
+  use update;
+
+  use association _Travel;
+}

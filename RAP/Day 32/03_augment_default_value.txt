@@ -1,0 +1,23 @@
+1. Write the augment keyword for projection for processor
+
+use create(augment);
+
+2. Define the class for the implementation
+
+implementation in class ZCL_TRAVEL_PROCESSOR_M_AB
+
+3. Implement the class for augment logic
+
+  METHOD augment_create.
+     DATA: travel_create TYPE TABLE FOR CREATE ZI_TRAVEL_M_AB.
+
+    travel_create = CORRESPONDING #( entities ).
+    LOOP AT travel_create ASSIGNING FIELD-SYMBOL(<travel>).
+      <travel>-agencyid = '070012'.
+      <travel>-status  = 'O'.
+      <travel>-%control-agencyid = if_abap_behv=>mk-on.
+      <travel>-%control-status = if_abap_behv=>mk-on.
+    ENDLOOP.
+
+    MODIFY AUGMENTING ENTITIES OF ZI_TRAVEL_M_AB ENTITY Travel CREATE FROM travel_create.
+  ENDMETHOD.
