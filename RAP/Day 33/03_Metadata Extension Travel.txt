@@ -1,0 +1,67 @@
+@Metadata.layer: #CORE
+annotate view ZC_TRAVEL_APPROVER_M_LAMAB with
+{
+  @UI.facet: [ { id:              'Travel',
+                 purpose:         #STANDARD,
+                 type:            #IDENTIFICATION_REFERENCE,
+                 label:           'Travel',
+                 position:        10 } ,
+               { id:              'Booking',
+                 purpose:         #STANDARD,
+                 type:            #LINEITEM_REFERENCE,
+                 label:           'Booking',
+                 position:        20,
+                 targetElement:   '_Bookings'}]
+
+  @UI: {
+  selectionField: [{position: 10 }],
+  lineItem: [{position: 10 }],
+  identification: [{position: 10 }]
+  }
+  TravelId;
+  @UI: {
+  selectionField: [{position: 20 }],
+  lineItem: [{position: 20 }],
+  identification: [{position: 20 }]
+  }
+  AgencyId;
+  @UI: {
+  selectionField: [{position: 30 }],
+  lineItem: [{position: 30 }],
+  identification: [{position: 30 }]
+  }
+  CustomerId;
+  @UI: {
+  lineItem: [{position: 40 }],
+  identification: [{position: 40 }]
+  }
+  BeginDate;
+  @UI: {
+  lineItem: [{position: 50 }],
+  identification: [{position: 50 }]
+  }
+  EndDate;
+  @UI: {
+  identification: [{position: 60 }]
+  }
+  BookingFee;
+  @UI: {
+  identification: [{position: 70 }]
+  }
+  TotalPrice;
+  @UI: {
+  identification: [{position: 80 }]
+  }
+  Memo;
+
+  @UI: {
+      lineItem:       [ { position: 15, importance: #HIGH },
+                        { type: #FOR_ACTION, dataAction: 'acceptTravel', label: 'Accept Travel' },
+                        { type: #FOR_ACTION, dataAction: 'rejectTravel', label: 'Reject Travel' } ],
+      identification: [ { position: 15 },
+                        { type: #FOR_ACTION, dataAction: 'acceptTravel', label: 'Accept Travel' },
+                        { type: #FOR_ACTION, dataAction: 'rejectTravel', label: 'Reject Travel' } ] ,
+      selectionField: [ { position: 40 } ] }
+  @EndUserText.label: 'Overall Status'
+  Status;
+}

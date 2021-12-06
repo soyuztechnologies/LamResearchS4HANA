@@ -1,0 +1,47 @@
+@Metadata.layer: #CORE
+annotate view ZC_BOOKING_APPROVER_M_LAMAB
+    with 
+{
+    @UI.facet: [{
+  purpose: #STANDARD,
+  id:'Booking',
+  type: #IDENTIFICATION_REFERENCE
+  }]
+  TravelId;
+  @UI:{
+  lineItem: [{position: 10 }],
+  identification: [{position: 10 }]
+  }
+  BookingId;
+  @UI:{
+  lineItem: [{position: 20 }],
+  identification: [{position: 20 }]
+  }
+  BookingDate;
+  @UI:{
+  lineItem: [{position: 30 }],
+  identification: [{position: 30 }]
+  }
+  CustomerId;
+  @UI:{
+  lineItem: [{position: 40 }],
+  identification: [{position: 40 }]
+  }
+  CarrierId;
+  @UI:{
+  lineItem: [{position: 50 }],
+  identification: [{position: 50 }]
+  }
+  ConnectionId;
+  @UI:{
+  lineItem: [{position: 60 }],
+  identification: [{position: 60 }]
+  }
+  FlightDate;
+  @UI:{
+  lineItem: [{position: 70 }],
+  identification: [{position: 70 }]
+  }
+  FlightPrice;
+    
+}
