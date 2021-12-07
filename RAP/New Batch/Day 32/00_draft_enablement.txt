@@ -1,0 +1,36 @@
+1 - Enable the draft handling in the base business object
+with draft;
+
+2. Provide the draft table name
+draft table zabc_travel_new
+
+3. Use total etag for disposable lock
+total etag Lastchangedat
+
+4. Mark Draft Enablement for associated entity
+association _Booking { create; with draft; }
+
+5. Mention draft table for booking entity
+draft table zabc_book_new
+
+6. Enable draft management by parent association
+association _Travel { with draft; }
+
+7. Maintain validations for draft enablement
+draft determine action Prepare
+  {
+    validation validateCustomer;
+    validation validateDates;
+    validation validateStatus;
+  }
+
+--Go to projection layer
+8. Enable Draft exposure to projection layer
+projection;
+use draft;
+
+9. Expose Association with draft on booking
+use association _Booking { create; with draft;}
+
+10. Parent association draft exposure
+use association _Travel {with draft;}

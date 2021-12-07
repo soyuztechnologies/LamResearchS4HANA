@@ -1,0 +1,86 @@
+METHOD if_rap_query_provider~select.
+
+   DATA: filter_factory   TYPE REF TO /iwbep/if_cp_filter_factory,
+          filter_node      TYPE REF TO /iwbep/if_cp_filter_node,
+          root_filter_node TYPE REF TO /iwbep/if_cp_filter_node.
+
+    DATA: lt_business_data TYPE TABLE OF zrap_xxz_travel_agency_es5.
+
+    DATA(top)     = io_request->get_paging( )->get_page_size( ).
+    DATA(skip)    = io_request->get_paging( )->get_offset( ).
+    DATA(requested_fields)  = io_request->get_requested_elements( ).
+    DATA(sort_order)    = io_request->get_sort_elements( ).
+
+    TRY.
+        DATA(lt_filter_condition) = io_request->get_filter( )->get_as_ranges( ).
+      CATCH cx_rap_query_filter_no_range.
+    ENDTRY.
+
+    TRY.
+        DATA(lv_http_destination) = cl_http_destination_provider=>create_by_url( i_url = 'https://sapes5.sapdevcenter.com/' ).
+        DATA(lo_http_client) = cl_web_http_client_manager=>create_by_http_destination( i_destination = lv_http_destination ).
+
+        TRY.
+         DATA(lo_client_proxy) = cl_web_odata_client_factory=>create_v2_remote_proxy(
+              EXPORTING
+                iv_service_definition_name = 'ZSC_RAP_AGENCY_XX'
+                io_http_client             = lo_http_client
+                iv_relative_service_root   = '/sap/opu/odata/sap/ZAGENCYCDS_SRV').
+
+        CATCH: /iwbep/cx_gateway, cx_web_http_client_error.
+            " Error handling
+       ENDTRY.
+
+ " Navigate to the resource and create a request for the read operation
+        DATA(lo_read_list_request) = lo_client_proxy->create_resource_for_entity_set( 'Z_TRAVEL_AGENCY_ES5' )->create_request_for_read( ).
+
+ " Create the filter tree
+         filter_factory = lo_read_list_request->create_filter_factory( ).
+
+         LOOP AT lt_filter_condition INTO DATA(filter_condition).
+          filter_node = filter_factory->create_by_range(  iv_property_path = filter_condition-name
+                                                          it_range         = filter_condition-range ).
+
+          IF root_filter_node IS INITIAL.
+            root_filter_node = filter_node.
+          ELSE.
+            root_filter_node = root_filter_node->and( filter_node ).
+          ENDIF.
+         ENDLOOP.
+
+          IF root_filter_node IS NOT INITIAL.
+            lo_read_list_request->set_filter( root_filter_node ).
+          ENDIF.
+
+          IF io_request->is_data_requested( ) = abap_true.
+            lo_read_list_request->set_skip( CONV i( skip ) ).
+            IF top > 0 .
+              lo_read_list_request->set_top( CONV i( top ) ).
+            ENDIF.
+          ENDIF.
+
+          IF io_request->is_total_numb_of_rec_requested(  ) = abap_true.
+            lo_read_list_request->request_count(  ).
+          ENDIF.
+
+  " Execute the request and retrieve the business data
+        DATA(lo_read_list_response) = lo_read_list_request->execute( ).
+
+        lo_read_list_response->get_business_data( IMPORTING et_business_data = lt_business_data ).
+
+        IF io_request->is_total_numb_of_rec_requested(  ).
+          io_response->set_total_number_of_records(  lo_read_list_response->get_count(  ) ).
+        ENDIF.
+
+        IF io_request->is_data_requested(  ).
+          io_response->set_data( lt_business_data ).
+        ENDIF.
+
+      CATCH /iwbep/cx_cp_remote INTO DATA(lx_remote).
+  " Handle remote Exception
+
+      CATCH /iwbep/cx_gateway INTO DATA(lx_gateway).
+  " Handle Exception
+    ENDTRY.
+
+ENDMETHOD.

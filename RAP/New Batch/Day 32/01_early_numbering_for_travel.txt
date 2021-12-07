@@ -1,0 +1,28 @@
+1. Add Early Numbering for Travel Entity
+early numbering
+
+2. Write below code in the function
+
+ METHOD earlynumbering_create.
+
+    " Mapping for already assigned travel IDs (e.g. during draft activation)
+     mapped-travel = VALUE #( FOR entity IN entities WHERE ( travelid IS NOT INITIAL )
+                                                          ( %cid      = entity-%cid
+                                                            %is_draft = entity-%is_draft
+                                                            %key      = entity-%key ) ).
+
+    " This should be a number range. But for the demo purpose, avoiding the need to configure this in each and every system, we select the max value ...
+
+    SELECT MAX( travel_id ) FROM /dmo/travel INTO @DATA(max_travel_id).
+    SELECT MAX( travelid ) FROM zabc_travel_new INTO @DATA(max_d_travel_id).
+
+    IF max_d_travel_id > max_travel_id.  max_travel_id = max_d_travel_id.  ENDIF.
+
+    " Mapping for newly assigned travel IDs
+    mapped-travel = VALUE #( BASE mapped-travel FOR entity IN entities INDEX INTO i
+                                                    USING KEY entity
+                                                    WHERE ( travelid IS INITIAL )
+                                                          ( %cid      = entity-%cid
+                                                            %is_draft = entity-%is_draft
+                                                            travelid  = max_travel_id + i ) ).
+  ENDMETHOD.

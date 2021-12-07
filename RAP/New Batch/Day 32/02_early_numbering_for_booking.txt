@@ -1,0 +1,44 @@
+1. Add early numbering for Booking Entity
+
+early numbering
+
+2. Write the code to auto generate numbering for booking entity
+
+    METHODS earlynumbering_cba_Booking FOR NUMBERING
+      IMPORTING entities FOR CREATE Travel\_Booking.
+
+3. The implementation
+
+  METHOD earlynumbering_cba_Booking.
+        DATA: max_booking_id TYPE /dmo/booking_id.
+
+    READ ENTITIES OF ZI_TRAVEL_M_AB IN LOCAL MODE
+      ENTITY Travel BY \_Booking
+        FIELDS ( bookingid )
+          WITH CORRESPONDING #( entities )
+          RESULT DATA(bookings)
+          FAILED failed.
+
+    LOOP AT entities INTO DATA(entity).
+      CLEAR: max_booking_id.
+      LOOP AT bookings INTO DATA(booking) USING KEY draft WHERE %is_draft = entity-%is_draft
+                                                          AND   travelid  = entity-Travelid.
+        IF booking-Bookingid > max_booking_id.
+            max_booking_id = booking-Bookingid.
+        ENDIF.
+      ENDLOOP.
+      " Map bookings that already have a BookingID.
+      LOOP AT entity-%target INTO DATA(already_mapped_target) WHERE Bookingid IS NOT INITIAL.
+        APPEND CORRESPONDING #( already_mapped_target ) TO mapped-booking.
+        IF already_mapped_target-Bookingid > max_booking_id.
+            max_booking_id = already_mapped_target-Bookingid.
+        ENDIF.
+      ENDLOOP.
+      " Map bookings with new BookingIDs.
+      LOOP AT entity-%target INTO DATA(target) WHERE Bookingid IS INITIAL.
+        max_booking_id += 5.
+        APPEND CORRESPONDING #( target ) TO mapped-booking ASSIGNING FIELD-SYMBOL(<mapped_booking>).
+        <mapped_booking>-Bookingid = max_booking_id.
+      ENDLOOP.
+    ENDLOOP.
+  ENDMETHOD.
