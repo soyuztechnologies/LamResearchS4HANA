@@ -1,0 +1,31 @@
+1. Add the Status Criticality fields and text to the Base CDS entity
+
+case /dmo/travel.status
+   when 'N' then 'New'
+   when 'O' then 'Open'
+   when 'P' then 'Planned'
+   when 'A' then 'Approved'
+   when 'X' then 'Cancelled'
+   else 'Undefined'
+   end as OverallStatus,
+   case /dmo/travel.status
+   when 'N' then 2
+   when 'O' then 2
+   when 'P' then 2
+   when 'A' then 3
+   when 'X' then 1
+   else 0
+   end as StatusCriticality,
+
+2. In the projection layer, link the status calculation and criticality
+
+    @ObjectModel.text.element: ['OverallStatus']
+    Status,
+    @Semantics.text: true
+    OverallStatus,
+    StatusCriticality,
+
+3. Add Criticality linkage in the annotations
+
+lineItem: [{position: 60, criticality: 'StatusCriticality' },
+                    {position: 60, criticality: 'StatusCriticality' }] ,
